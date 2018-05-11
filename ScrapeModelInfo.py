@@ -10,15 +10,15 @@ class AutoTraderSession():
     def __init__(self):
         self.browser = webdriver.Chrome(r'chromedriver')
 
-    def getData(self, url, CSSselector, ID):
+    def getData(self, url, CSSselector):
         self.browser.get(url)
-        clickedPage = self.browser.find_element_by_css_selector(CSSselector).click().page_source
-        return clickedPage.page_source
+        self.browser.find_element_by_css_selector(CSSselector).click()
+        return self.browser.page_source
         self.browser.quit()
 
 def main():
     Session = AutoTraderSession()
-    return Session.getData(url = AutoURL, CSSselector = CSSSelectorButton)
+    print(Session.getData(url = AutoURL, CSSselector = CSSSelectorButton))
 
 if __name__ == '__main__':
     main()
