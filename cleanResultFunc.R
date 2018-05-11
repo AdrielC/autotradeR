@@ -3,7 +3,6 @@
 clean_result_df <- function(df, locationName = NA){
   df <- df %>% 
     mutate(
-      model = sub('.*Wrangler ', '', listing_title),
       year = suppressWarnings(parse_number(listing_title)),
       ownershipStatus = suppressWarnings(gsub("([A-Za-z]+).*", "\\1", listing_title)),
       listing_distance_miles = suppressWarnings(as.numeric(listing_distance_miles)),

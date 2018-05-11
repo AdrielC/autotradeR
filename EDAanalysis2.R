@@ -91,32 +91,86 @@ full_df <- bind_rows(autoTrader_scrape(make = "jeep",
                                        pages = "all", 
                                        sellerType = "d", 
                                        fork = 7L,
-                                       locationName = "Evanston"))
-
-full_df_clean <- full_df %>% 
+                                       locationName = "Evanston"),
+                     
+                     autoTrader_scrape(make = "jeep", 
+                                       model = "wrangler", 
+                                       zip = 90001, 
+                                       pages = "all", 
+                                       sellerType = "p", 
+                                       fork = 7L,
+                                       locationName = "LA"),
+                     
+                     autoTrader_scrape(make = "jeep", 
+                                       model = "wrangler", 
+                                       zip = 90001, 
+                                       pages = "all", 
+                                       sellerType = "d", 
+                                       fork = 7L,
+                                       locationName = "LA"),
+                     
+                     autoTrader_scrape(make = "jeep", 
+                                       model = "wrangler", 
+                                       zip = 94061, 
+                                       pages = "all", 
+                                       sellerType = "p", 
+                                       fork = 7L,
+                                       locationName = "SF"),
+                     
+                     autoTrader_scrape(make = "jeep", 
+                                       model = "wrangler", 
+                                       zip = 94061, 
+                                       pages = "all", 
+                                       sellerType = "d", 
+                                       fork = 7L,
+                                       locationName = "SF")
+                     ) %>% 
   distinct(VIN, .keep_all = TRUE)
 
+
+full_df_clean <- full_df %>% 
+  dplyr::select(-rowNum) %>% 
+  rowid_to_column("rowNum")
+
 full_df_clean %>% 
-  filter(!is.na(SellerType),
+  filter(!is.na(sellerType),
          Mileage < 200000,
          price < 50000,
          year > 2010,
          grepl("Rubicon", as.character(model))) %>% 
   ggplot(aes(x = Mileage, y = price)) +
   geom_point() +
-  geom_smooth(method = "lm", aes(col = SellerType)) + 
+  geom_smooth(method = "lm", aes(col = sellerType)) + 
   geom_text(aes(label = rowNum), hjust=0, vjust=0)
 
-t.test(DealersProvo$price, PrivateSellersProvo$price)
+t.test(full_df_clean$price, full_df_clean$price)
 
-Provo %>% 
-  filter(!is.na(SellerType),
+full_df_clean %>% 
+  filter(!is.na(sellerType),
          Mileage < 200000,
-         price < 50000,
-         year > 2010,
-         grepl("Rubicon", as.character(model))) %>% 
-  lm(price ~ Mileage + year + SellerType, data = .) %>% 
+         price < 70000,
+         year > 2005
+         ) %>% 
+  lm(price ~ Mileage + year + sellerType + newListingIndicator + ownershipStatus + listingPriceRedu, data = .) %>% 
   summary()
+
+outMod <- full_df_clean %>% 
+  lm(price ~ Mileage + year + sellerType + newListingIndicator + ownershipStatus + listingPriceRedu, data = ., na.action = na.exclude)
+
+model_full <- cbind(full_df_clean, resid = resid(outMod), fitted = fitted(outMod)) %>% 
+  arrange(resid)
+
+model_full %>% 
+  filter(grepl("Rubicon", as.character(model))) %>% 
+  .[1:10,] %>% 
+  .$listing_url
+
+model_full %>% 
+  filter(grepl("Rubicon", as.character(model))) %>% 
+  .[1:10,] %>% 
+  .$resid
+
+
 
 Provo[1027,]$listing_url
 ProvoTest <- Provo %>% 
