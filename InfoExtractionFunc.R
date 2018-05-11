@@ -2,7 +2,9 @@
 # Info Extraction Functions -----------------------------------------------
 
 # All these functions take in the input of a single car listing URL 
-  # and return dataframes of specific information
+  # and return dataframes of specific information.
+  # Any additional information that needs to be scraped should be added here as a function
+    # and then the function should be added to the extract_listing_data() function.
 
 ### Data to Scrape:
   # Price
@@ -32,21 +34,37 @@
   # Warranty Info
     # Selector: ".margin-vertical-sm td"
 
-  # Newly Listed
+  # Newly Listed Indicator
     # Selector: ".text-md.text-orange"
+
+  # Listing Seller
+    # Selector: ".text-bold div"
+
+  # Model
+    # Selector: ".text-lg .text-normal"
 
 
 # Testing URLs for info extract functions ------------------------------------------------------------
 #
-# testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=476939933&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D50&startYear=1981&numRecords=25&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=50&makeCode1=JEEP&modelCode1=WRANGLER"
+  # testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=476939933&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D50&startYear=1981&numRecords=25&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=50&makeCode1=JEEP&modelCode1=WRANGLER"
 # This has no price
-# testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=484138993&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D650%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D50&startYear=1981&numRecords=25&firstRecord=650&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=50&makeCode1=JEEP&modelCode1=WRANGLER"
+  # testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=484138993&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D650%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D50&startYear=1981&numRecords=25&firstRecord=650&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=50&makeCode1=JEEP&modelCode1=WRANGLER"
 # Price Reduced
-# testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=466254090&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D350%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D50&startYear=1981&numRecords=25&firstRecord=350&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=50&makeCode1=JEEP&modelCode1=WRANGLER"
+  # testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=466254090&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D350%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D50&startYear=1981&numRecords=25&firstRecord=350&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=50&makeCode1=JEEP&modelCode1=WRANGLER"
 # NewlyListed
-# testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=484138993&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D650%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D50&startYear=1981&numRecords=25&firstRecord=650&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=50&makeCode1=JEEP&modelCode1=WRANGLER"
-# 
-# sessionNode <- read_html(testURL)
+  # testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=484138993&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D650%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D50&startYear=1981&numRecords=25&firstRecord=650&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=50&makeCode1=JEEP&modelCode1=WRANGLER"
+# Koons Chrysler listingSellerExtract() test
+  # testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=474860262&zip=20895&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D20895%26startYear%3D1981%26numRecords%3D100%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D100&startYear=1981&numRecords=100&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=100&makeCode1=JEEP&modelCode1=WRANGLER"
+# Private Seller
+  # testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=463629456&zip=20895&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D20895%26sellerTypes%3Dp%26startYear%3D1981%26numRecords%3D100%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D0&sellerTypes=p&startYear=1981&numRecords=100&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=0&makeCode1=JEEP&modelCode1=WRANGLER"
+# 4WD Unlimited Rubicon
+  # testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=484638653&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3DderivedpriceDESC%26incremental%3Dall%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D0&startYear=1981&numRecords=25&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=0&makeCode1=JEEP&modelCode1=WRANGLER"
+
+#sessionNode <- read_html(testURL)
+
+
+# priceExtract() ----------------------------------------------------------
+
 
 priceExtract <- function(sessionNode)
 {
@@ -54,7 +72,7 @@ priceExtract <- function(sessionNode)
     rvest::html_node(".text-lg strong") %>% 
     rvest::html_text()
   
-  listingPrice <- tryCatch(readr::parse_number(listingPrice),
+  listingPrice <- tryCatch(suppressWarnings(readr::parse_number(listingPrice)),
                            error = function(e) return(NA))
   
   listingPriceTable <- tibble(
@@ -63,6 +81,9 @@ priceExtract <- function(sessionNode)
   
   return(listingPriceTable)
 }
+
+# priceReduExtract() ------------------------------------------------------
+
 
 priceReduExtract <- function(sessionNode)
 {
@@ -82,6 +103,9 @@ priceReduExtract <- function(sessionNode)
   
   return(listingPriceReduTable)
 }
+
+# carInfoTableExtract() ---------------------------------------------------
+
 
 carInfoTableExtract <- function(sessionNode)
 {
@@ -131,6 +155,9 @@ carInfoTableExtract <- function(sessionNode)
   return(carInfoTable)
 }
 
+# carFeaturesExtract() ----------------------------------------------------
+
+
 carFeaturesExtract <- function(sessionNode)
 {
   carFeaturesTextRaw <- tryCatch(
@@ -154,6 +181,9 @@ carFeaturesExtract <- function(sessionNode)
   
   return(carFeaturesText)
 }
+
+# carColorExtract() -------------------------------------------------------
+
 
 carColorExtract <- function(sessionNode)
 {
@@ -180,6 +210,9 @@ carColorExtract <- function(sessionNode)
   return(carColorTable)
 }
 
+# sellerCommentExtract() --------------------------------------------------
+
+
 sellerCommentExtract <- function(sessionNode)
 {
   sellerCommentText <- tryCatch(
@@ -200,6 +233,9 @@ sellerCommentExtract <- function(sessionNode)
   
   return(sellerCommentText)
 }
+
+# warrantyInfoExtract() ---------------------------------------------------
+
 
 warrantyInfoExtract <- function(sessionNode)
 {
@@ -229,6 +265,9 @@ warrantyInfoExtract <- function(sessionNode)
   return(warrantyInfoTable)
 }
 
+# newListingIndicatorExtract() --------------------------------------------
+
+
 newListingIndicatorExtract <- function(sessionNode)
 {
   newListingIndicator <- sessionNode %>% 
@@ -246,4 +285,36 @@ newListingIndicatorExtract <- function(sessionNode)
   }
   
   return(newListingIndicatorTable)
+}
+
+# listingSellerExtract() --------------------------------------------------
+
+
+listingSellerExtract <- function(sessionNode)
+{
+  dealerName <- sessionNode %>% 
+    rvest::html_node(".text-bold div") %>% 
+    rvest::html_text()
+  
+  dealerNameTable <- tibble(
+    `Dealer` = dealerName
+  )
+  
+  return(dealerNameTable)
+}
+
+# modelExtract() --------------------------------------------------
+
+
+modelExtract <- function(sessionNode)
+{
+  model <- sessionNode %>% 
+    rvest::html_node(".text-lg .text-normal") %>% 
+    rvest::html_text()
+  
+  modelTable <- tibble(
+    model = model
+  )
+  
+  return(modelTable)
 }

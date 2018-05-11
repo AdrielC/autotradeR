@@ -12,27 +12,13 @@ class AutoTraderSession():
 
     def getData(self, url, CSSselector, ID):
         self.browser.get(url)
-        self.browser.find_element_by_css_selector(CSSselector).click()
-        table_data = self.browser.find_elements_by_id(ID)
-        list_rows = []
-        #for items in table_data.find_elements_by_xpath('.//tr'):
-        #    list_cells = []
-        #    for item in items.find_elements_by_xpath('.//td[@class="row"]|.//td'):
-        #        list_cells.append(item.text)
-        #        list_rows.append(list_cells)
-        #for data in list_rows:
-        #    print(data)
-        print(table_data)
+        clickedPage = self.browser.find_element_by_css_selector(CSSselector).click().page_source
+        return clickedPage.page_source
         self.browser.quit()
-
-
 
 def main():
     Session = AutoTraderSession()
-    Session.getData(url = AutoURL, CSSselector = CSSSelectorButton, ID = ID)
-
-
-
+    return Session.getData(url = AutoURL, CSSselector = CSSSelectorButton)
 
 if __name__ == '__main__':
     main()

@@ -1,117 +1,50 @@
 source("JeepScrapeFunc.R")
 source("InfoExtractionFunc.R")
 source("cleanResultFunc.R")
-library(ggplot2)
-library(stringr)
-library(purrr)
+library(tidyverse)
 library(rvest)
 library(httr)
 library(readr)
 library(leaps)
 library(MASS)
+library(broom)
 
-# full_clean <- read_csv("JeepData_05-04-18.csv", guess_max = 9000)
-# full_clean <- read_csv("JeepData_05-05-18.csv", guess_max = 9000)
-
-# DataExtractAndClean -----------------------------------------------------------------
-
-### 100 Miles from Provo
-Provo <- query_autoTrader(make = "jeep", model = "wrangler", zip = 84604, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-### 100 Miles from Logan
-Logan <- query_autoTrader(make = "jeep", model = "wrangler", zip = 84321, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-### 100 Miles from Las Vegas
-Vegas <- query_autoTrader(make = "jeep", model = "wrangler", zip = 88901, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-### 100 Miles from Bethesda/DC
-DC <- query_autoTrader(make = "jeep", model = "wrangler", zip = 20895, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-### 100 Miles from Corolla, NC
-Corolla <- query_autoTrader(make = "jeep", model = "wrangler", zip = 27927, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-### 100 Miles from Denver, CO
-Denver <- query_autoTrader(make = "jeep", model = "wrangler", zip = 80014, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-Dallas <- query_autoTrader(make = "jeep", model = "wrangler", zip = 75315, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-Austin <- query_autoTrader(make = "jeep", model = "wrangler", zip = 73301, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-Austin <- query_autoTrader(make = "jeep", model = "wrangler", zip = 73301, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-ElPaso <- query_autoTrader(make = "jeep", model = "wrangler", zip = 79916, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-Pheonix <- query_autoTrader(make = "jeep", model = "wrangler", zip = 85001, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-
-Reno <- query_autoTrader(make = "jeep", model = "wrangler", zip = 89505, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-
-BoulderCity <- query_autoTrader(make = "jeep", model = "wrangler", zip = 89006, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-
-Pocatello <- query_autoTrader(make = "jeep", model = "wrangler", zip = 83201, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-Boise <- query_autoTrader(make = "jeep", model = "wrangler", zip = 83799, pages = "all", searchRadius = 100) %>% 
-  query_URL_reader() %>% 
-  scraper_apply()
-
-ProvoClean <- clean_result_df(Provo, "Provo")
-VegasClean <- clean_result_df(Vegas, "Vegas")
-DCClean <- clean_result_df(DC, "DC")
-LoganClean <- clean_result_df(Logan, "Logan")
-AustinClean <- clean_result_df(Austin, "Austin")
-BoiseClean <- clean_result_df(Boise, "Boise")
-BoulderCityClean <- clean_result_df(BoulderCity, "BoulderCity")
-DallasClean <- clean_result_df(Dallas, "Dallas")
-DenverClean <- clean_result_df(Denver, "Denver")
-PheonixClean <- clean_result_df(Pheonix, "Pheonix")
-PocatelloClean <- clean_result_df(Pocatello, "Pocatello")
-RenoClean <- clean_result_df(Reno, "Reno")
-
-full_clean <- bind_rows(mget(ls()))
+full_clean <- read_csv("JeepData_05-05-18.csv", guess_max = 9000) %>% 
+  rowid_to_column("rowNum")
 
 # Data plotting -----------------------------------------------------------
 
 full_clean %>% 
+  distinct(VIN, .keep_all = TRUE) %>% 
   filter(
-    year >= 2014,
-    Mileage < 50000
+    as.character(Location) %in% c("Provo", "Logan", "Vegas", "Pocatello", "Boise"),
+    model %in% c("4WD Unlimited Rubicon", "JK 4WD Rubicon", "JK 4WD Unlimited Rubicon"),
+    year >= 2012,
+    Mileage < 100000,
+    Mileage > 100
   ) %>% 
   ggplot(aes(x = Mileage, y = price)) +
     geom_point() +
     geom_smooth(method = "lm") + 
     geom_text(aes(label = rowNum), hjust=0, vjust=0)
 
-good_deal <- full_clean_all[6125,]$listing_url
+lm_out <- full_clean %>% 
+  filter(
+    model %in% c("4WD Unlimited Rubicon", "JK 4WD Rubicon", "JK 4WD Unlimited Rubicon"),
+    year == 2012,
+    Mileage < 100000,
+    Mileage > 0
+  ) %>% 
+  lm(price ~ Mileage, data = .)
+
+Daryl <- tibble(
+  Mileage = 94000
+)
+
+augment(lm_out, newdata = Daryl)
+
+
+good_deal <- full_clean[365,]$listing_url
 
 lm_out21 <- lm(price ~ Mileage + year, data = full_clean)
 
@@ -153,7 +86,7 @@ ggplot(full_clean, aes(x = listing_distance_miles, y = price)) +
   geom_smooth(method = "lm")
 
 full_clean %>% 
-  group_by(ownershipStatus) %>% 
+  group_by(exterior) %>% 
   summarise(meanPrice = mean(price, na.rm = T), N = n()) %>% 
   filter(N > 10) %>% 
   arrange(desc(meanPrice))
@@ -264,6 +197,21 @@ ggplot(filtered, aes(x = Mileage, y = price)) +
 ggplot(filtered, aes(x = newListingIndicator, y = price)) +
   geom_boxplot(aes(col = filtered$listingPriceRedu)) +
   facet_wrap(~year)
+
+full_clean %>% 
+  filter(
+    Location %in% c("Provo", "Logan", "Vegas", "Pocatello", "Boise"),
+    model %in% c("4WD Unlimited Rubicon", "JK 4WD Rubicon", "JK 4WD Unlimited Rubicon"),
+    grep("Rubicon", model),
+    year >= 2012,
+    Mileage < 100000,
+    Mileage > 0
+  ) %>%
+  group_by(year, Location) %>% 
+  summarise(meanPrice = mean(price, na.rm = T)) %>% 
+  ggplot(data = ., aes(x = factor(year), y = meanPrice)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~Location, scales = "free")
 
 
 # Testing -----------------------------------------------------------------
