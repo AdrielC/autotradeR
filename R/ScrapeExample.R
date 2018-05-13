@@ -19,3 +19,39 @@ ProvoJeepP <- autoTrader_scrape(make = "Jeep", model = "Wrangler", zip = 84604, 
 ProvoJeepD <- autoTrader_scrape(make = "Jeep", model = "Wrangler", zip = 84604, pages = "all",
                                sellerType = "d", locationName = "Provo", fork = 8)
 
+cities <- read_csv("Data/major_cities.csv")
+cities <- cities %>% 
+  mutate(Zip = substr(Zip, 0, 5))
+
+sellerVec <- c("p", "d")
+for(i in 1:2){
+  sellerSelect <- sellerVec[i]
+  for(i in 1:nrow(cities)){
+    tryCatch(autoTrader_scrape(make = "Jeep", model = "Wrangler", zip = cities$Zip[i], pages = "all",
+                      sellerType = sellerSelect, locationName = cities$City[i], fork = 8, 
+                      write_csv = T),
+    
+    error = function(e){
+      Sys.sleep(20)
+      tryCatch(autoTrader_scrape(make = "Jeep", model = "Wrangler", zip = cities$Zip[i], pages = "all",
+                        sellerType = sellerSelect, locationName = cities$City[i], fork = 8, 
+                        write_csv = T),
+      
+      error = function(e){
+        return(Sys.sleep(20))
+      })
+      })
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+

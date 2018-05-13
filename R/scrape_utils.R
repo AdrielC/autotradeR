@@ -115,7 +115,7 @@ autoTrader_query <- function(make, model, zip,
     )
 
   if(recursive == FALSE){ # This saves the function a TON of time if using recursion. This needs to be done only once
-    possiblePages <- read_html(masterSearchURL) %>%
+    possiblePages <- xml2::read_html(masterSearchURL) %>%
     rvest::html_node(".pull-right > span") %>% 
     rvest::html_text() %>% 
     str_split(pattern = " ") %>% 
@@ -172,47 +172,47 @@ listings_df <- function(masterSearchURL)
 {
   
   listings_html <- masterSearchURL %>% 
-    read_html()
+    xml2::read_html()
   
-  noResult <- html_text(html_node(listings_html, ".text-normal"))
+  noResult <- rvest::html_text(rvest::html_node(listings_html, ".text-normal"))
   
   if(!is.na(noResult)){ # noResult will be NA if there are results for the search
     if(noResult == "No results found."){
       stop("No results found. Please change your search parameters") 
     } else {
-      message("Trying listings_df() again. Recursion boiiiiii")
+      message("Trying listings_df() again")
       return(listings_df(masterSearchURL))
     }
   }
   
   if(!is.na(noResult)){
-    message("Trying listings_df again. Recursion boiiiiii")
+    message("Trying listings_df() again")
     return(listings_df(masterSearchURL))
   }
   
   listings_nodeset <- listings_html %>% 
-    html_nodes(".col-sm-9 .text-md") %>%
-    html_attrs() 
+    rvest::html_nodes(".col-sm-9 .text-md") %>%
+    rvest::html_attrs() 
   
   listings_df <- listings_nodeset %>%
     tibble(
-      listing_title = map(., "title") %>% 
+      listing_title = purrr::map(., "title") %>% 
         unlist()
       ,
       listing_distance_miles = if(
         length(listings_html %>%
-          html_nodes(".text-sm strong")) == 0
+               rvest::html_nodes(".text-sm strong")) == 0
       ){
         NA
       } else {
         listings_html %>%
-          html_nodes(".text-sm strong") %>% 
-          html_text() %>%
-          map(~ str_split(string = .x, pattern = " ")[[1]][1]) %>% 
+          rvest::html_nodes(".text-sm strong") %>% 
+          rvest::html_text() %>%
+          purrr::map(~ str_split(string = .x, pattern = " ")[[1]][1]) %>% 
           unlist()
       }
       ,
-      listing_url = map(., "href") %>% 
+      listing_url = purrr::map(., "href") %>% 
         unlist()
     ) %>%
     .[,-1]
@@ -227,7 +227,7 @@ query_URL_reader <- function(masterSearchURLs) UseMethod("query_URL_reader")
 query_URL_reader.list <- function(masterSearchURLs)
 {
   masterSearch_df <- masterSearchURLs %>% 
-    map(listings_df)
+    purrr::map(listings_df)
   return(masterSearch_df)
 }
 
@@ -242,8 +242,8 @@ query_URL_reader.character <- function(masterSearchURLs)
 build_listing_URL <- function(listing_url)
 {
   listing_html <- listing_url %>% 
-    paste("https://www.autotrader.com", ., sep = "") %>%
-    read_html()
+    paste0("https://www.autotrader.com", ., sep = "") %>%
+    rvest::read_html()
   return(listing_html)
 }
 
@@ -337,7 +337,7 @@ scraper_apply <- function(list, cl)
     
     if(is.na(retryScrape$`Body Style`)){ # This is run when the second scrape of a link doesnt work
       retryScrape <- extract_listing_data(x)
-      warning("Retrying link for the second time!! Holy shiz")
+      warning("Retrying link for the second time!")
       return(retryScrape)
     } else {
       return(result)
