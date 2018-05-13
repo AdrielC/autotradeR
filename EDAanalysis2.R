@@ -127,6 +127,9 @@ full_df <- bind_rows(autoTrader_scrape(make = "jeep",
                      ) %>%
   distinct(VIN, .keep_all = TRUE)
 
+autoTrader_scrape(make = "Jeep", model = "Wrangler", minPrice = 7000, zip = 84604,
+                  write_csv = TRUE, fork = 7)
+
 
 full_df_clean <- full_df %>%
   dplyr::select(-rowNum) %>%

@@ -46,7 +46,7 @@
 
 autoTrader_query <- function(make, model, zip, 
                              startYear=1981, numRecords=100, 
-                             firstRecord = 0, endYear=2019, 
+                             firstRecord = 0, endYear= as.numeric(format(Sys.Date(), "%Y")) + 1, # The following year
                              searchRadius = 0, sortBy = "relevance",
                              sellerTypes, minPrice, maxPrice, maxMileage,
                              pages, recursive = FALSE)
@@ -94,7 +94,7 @@ autoTrader_query <- function(make, model, zip,
       ""
     }
     ,
-    if(!missing(minPrice)){
+    if(!missing(maxMileage)){
       maxMileage <- possibleMilage[findInterval(maxMileage, possibleMilage)]
       paste0(
         "&maxMileage=", maxMileage
@@ -319,9 +319,8 @@ extract_listing_data <- function(listing_url)
 
 # scraper_apply() ---------------------------------------------------------
 
-scraper_apply <- function(list, cl = NA)
+scraper_apply <- function(list, cl)
 {
-  
   full_df1 <- dplyr::bind_rows(list)
   
   system.time(full_df2 <- pblapply(full_df1$listing_url, function(x){
@@ -338,13 +337,13 @@ scraper_apply <- function(list, cl = NA)
     
     if(is.na(retryScrape$`Body Style`)){ # This is run when the second scrape of a link doesnt work
       retryScrape <- extract_listing_data(x)
-      warning("Retrying link for the second time!!!! Holy shiz")
+      warning("Retrying link for the second time!! Holy shiz")
       return(retryScrape)
     } else {
       return(result)
     }
     
-    }, cl = cl))
+    }, cl = cl)) # This is where the forks are passed into the pbapply
   
   full_df_list <- dplyr::bind_cols(full_df1, dplyr::bind_rows(full_df2))
   return(full_df_list)
