@@ -1,0 +1,42 @@
+---
+output:
+  md_document:
+    variant: markdown_github
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+# autotradeR: an R package to get data from autotrader.com
+
+## Description
+In development R package for scraping autotrader.com and analyzing car prices. Make queries to autotrader and return ALL data from multiple listings for each query (1000 max per query). You can search for specific makes and models for any zipcode in the US. The scraping functionality is built using the rvest package (fantastic stuff), and some more advanced scraping is done with Python 3+ using selenium with a chromedriver.
+
+This package is under development and currently is not formatted as a package. Please wait for a bit while I go ahead and do that.
+
+## How to use
+For now install all the necessary libraries and source all of the R function files in the backend R folder. Then use autotrader_scrape() as the main function to make scraping calls. use args(autotrader_query) to see what query parameters you can use. I'll build this into a full package soon, so sit tight!
+
+See example in ScrapeExample.R
+
+```{r}
+library(tidyverse)
+library(rvest) # read_html functions and the like
+library(httr)
+library(pbapply) # For progress bars in queries
+library(parallel) # For parallel processing
+
+source("autotrader_scrape_main.R")
+source("data_clean.R")
+source("info_extractors.R")
+source("scrape_utils.R")
+
+ProvoJeepP <- autoTrader_scrape(make = "Jeep", model = "Wrangler", zip = 84604, pages = "all",
+                  sellerType = "p", locationName = "Provo", fork = 8)
+
+head(ProvoJeepD)
+```
+
+This queries autotrader for 1000 maximum results for Jeep Wranglers around 86404 in ascending distance.
+Private sellers are specified, and the tag "Provo" is added in locationName as a column value that can be unique for this query. The result is a tidy tibble with 32 columns of information. about the listing.
+The fork argument specifies how many cores will be used to parallelize the web scraping of autotrader.com. Please be kind to their servers, I have not yet written code for this package that behaves well in not making too many requests at once. This specific query will use 8 cores available to parallelize the scraping.
