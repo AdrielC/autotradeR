@@ -3,10 +3,6 @@ output:
   md_document:
     variant: markdown_github
 ---
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-<!-- README.md is generated from README.Rmd. Please edit that file -->
 # autotradeR: an R package to get data from autotrader.com
 
 ## Description
