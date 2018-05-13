@@ -14,11 +14,11 @@ class AutoTraderSession():
         self.browser.get(url)
         self.browser.find_element_by_css_selector(CSSselector).click()
         return self.browser.page_source
-        self.browser.quit()
 
 def main():
     Session = AutoTraderSession()
-    print(Session.getData(url = AutoURL, CSSselector = CSSSelectorButton))
+    return Session.getData(url = AutoURL, CSSselector = CSSSelectorButton)
+    Session.browser.quit()
 
 if __name__ == '__main__':
     main()
