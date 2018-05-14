@@ -5,7 +5,11 @@ library(pbapply) # For progress bars in queries
 library(parallel) # For parallel processing
 library(R.utils) # For sourcing an entire directory
 
-R.utils::sourceDirectory("Functions/")
+source("R/Functions/autoTrader_scrape.R")
+source("R/Functions/autoTrader_query.R")
+source("R/Functions/data_clean.R")
+source("R/Functions/info_extractors.R")
+source("R/Functions/scrape_utils.R")
 
 # This queries autotrader for 1000 maximum results for Jeep Wranglers around 86404 in asceding distance.
 # Private sellers are specified, and the tag "Provo" is added as a column value for this query.
@@ -32,7 +36,8 @@ for(i in 1:2){
       error = function(e){
         return(Sys.sleep(20))
       })
+      
+      Sys.sleep(abs(as.integer(rnorm(n = 1, mean = 15, sd = 10))))
       })
   }
-  
 }
