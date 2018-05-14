@@ -196,7 +196,7 @@ scraper_apply <- function(list, cl)
       return(result)
     }
     
-    }, cl = cl)) # This is where the forks are passed into the pbapply
+    }, cl = cl)) # This is where the number of forks (as integer) are passed into pbapply
   
   full_df_list <- dplyr::bind_cols(full_df1, dplyr::bind_rows(full_df2))
   return(full_df_list)

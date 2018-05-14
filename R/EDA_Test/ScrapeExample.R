@@ -3,7 +3,9 @@ library(rvest) # read_html functions and the like
 library(httr)
 library(pbapply) # For progress bars in queries
 library(parallel) # For parallel processing
-library(R.utils) # For sourcing an entire directory
+library(pbapply)
+
+print(getwd())
 
 source("R/Functions/autoTrader_scrape.R")
 source("R/Functions/autoTrader_query.R")
