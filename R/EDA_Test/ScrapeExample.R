@@ -17,7 +17,7 @@ source("../R/Functions/scrape_utils.R")
 # Private sellers are specified, and the tag "Provo" is added as a column value for this query.
 # This will use 8 cores available to parallelize the web scraping.
 
-cities <- read_csv("Data/major_cities.csv")
+cities <- read_csv("major_cities.csv")
 cities <- cities %>% 
   mutate(Zip = substr(Zip, 0, 5))
 
