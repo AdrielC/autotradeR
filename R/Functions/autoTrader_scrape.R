@@ -31,16 +31,12 @@ autoTrader_scrape <- function(locationName = NA, fork, write_csv = FALSE, path, 
       
       i <- 1
       while(Path %in% list.files()){
-        if(i == 1){
-          Path = paste0(substr(Path, 1, nchar(Path) - 4), "_", i, ".csv")
-        } else {
-          Path = paste0(substr(Path, 1, nchar(Path) - 6), "_", i, ".csv")
-        }
-      i <- i + 1
+        Path = paste0("autoTradeR-", Sys.Date(), "_", i, ".csv")
+        i <- 1 + i
       }
       
     } else {
-      defaultPath = path
+      Path = path
     }
     
     readr::write_csv(x = out, path = Path)

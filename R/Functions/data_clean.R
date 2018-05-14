@@ -28,6 +28,8 @@ clean_result_df <- function(df, locationName = NA){
     rowid_to_column("rowNum") %>% 
     dplyr::select(-MPG)
   
+  rm(MPG)
+  
   return(full_clean)
 } 
 
