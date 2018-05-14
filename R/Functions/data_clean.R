@@ -31,6 +31,4 @@ clean_result_df <- function(df, locationName = NA){
   rm(MPG)
   
   return(full_clean)
-} 
-
-
+}

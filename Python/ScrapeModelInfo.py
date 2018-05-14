@@ -1,7 +1,7 @@
 # install chromedriver from https://chromedriver.storage.googleapis.com/index.html?path=2.38/
 from selenium import webdriver
 
-AutoURL = "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=466254090&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D350%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D50&startYear=1981&numRecords=25&firstRecord=350&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=50&makeCode1=JEEP&modelCode1=WRANGLER"
+AutoURL = "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=479576919&zip=35801&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D35801%26startYear%3D1981%26numRecords%3D100%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D900%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D0&startYear=1981&numRecords=100&firstRecord=900&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=0&makeCode1=JEEP&modelCode1=WRANGLER&digitalRetail=true"
 
 ID = "466254090-pane-2"
 CSSSelectorButton = ".active+ li a , .active+ li span"
