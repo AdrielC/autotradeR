@@ -16,6 +16,7 @@ autoTrader_scrape <- function(locationName = NA, fork, write_csv = FALSE, path, 
   
   primaryQuery <- autoTrader_query(...) 
   
+  # This is where the magic happens
   out <- primaryQuery %>% 
     query_URL_reader() %>% 
     scraper_apply(cl) %>%

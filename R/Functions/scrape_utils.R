@@ -3,11 +3,7 @@
   ### on the site with any parameters. (e.g. https://www.autotrader.com/cars-for-sale/Jeep/Wrangler/Provo+UT-84604?zip=84604&startYear=1981&numRecords=25&sortBy=relevance&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=50 )
 
 # Function List -----------------------------------------------------------
-  # autoTrader_query()
-    # Take in search arguments and make master search query
-    # Input: 3 search arguments: 1) Make, 2) Model, 3) Zip
-    # Output: Master search result xml_document
-  
+
   # listing_df()
     # Read in master search URL and return urls and some additional info on all the listings on a search result page.
     # Input: Master search result URL
@@ -24,11 +20,6 @@
     # Input: partial car listing_url output from query_URL_reader
     # Output: xml document of individual car listing
   
-  # simpleCap()
-    # This capitalizes titles of make and model in the masterSearchURL
-    # Input: string argument from autoTrader_query
-    # Output: capitalized strings
-  
   # extract_listing_data()
     # This function calls all of the information extraction functions in InfoExtractionFunc.R
       # and returns a long dataframe of all the information for one listing (represented as a row)
@@ -40,133 +31,15 @@
       # dataframe returned by query_URL_reader()
     # Input: dataframe with column containing listing_url
     # Output: full dataframe of all listing information
-
-
-# autoTrader_query() ------------------------------------------------------
-
-autoTrader_query <- function(make, model, zip, 
-                             startYear=1981, numRecords=100, 
-                             firstRecord = 0, endYear= as.numeric(format(Sys.Date(), "%Y")) + 1, # The following year
-                             searchRadius = 0, sortBy = "relevance",
-                             sellerTypes, minPrice, maxPrice, maxMileage,
-                             pages, recursive = FALSE)
-{
-  possibleMilage <- c(0, seq(15000, 75000, by = 15000), 100000, 150000, 200000, 200001)
-  masterSearchURLs <- list(NULL)
   
-  if(numRecords < 25 && recursive == FALSE){
-    warning("Minimum number of records per page is 25! Returning 25 listings.")
-  }
-  
-  masterSearchURL <- paste0(
-    "https://www.autotrader.com/cars-for-sale/",
-    simpleCap(make), "/",
-    simpleCap(model), "/",
-    
-    if(!missing(zip)){
-      paste0(
-        "?zip=", zip, "&"
-      )
-    } else {
-      "?"      
-    }
-    ,
-    "startYear=", startYear,
-    "&numRecords=", numRecords,
-    "&sortBy=", sortBy,
-    "&firstRecord=", firstRecord,
-    "&endYear=", endYear,
-    "&searchRadius=", searchRadius
-    ,
-    if(!missing(minPrice)){
-      paste0(
-        "&minPrice=", minPrice
-      )
-    } else {
-      ""
-    }
-    ,
-    if(!missing(maxPrice)){
-      paste0(
-        "&maxPrice=", maxPrice
-      )
-    } else {
-      ""
-    }
-    ,
-    if(!missing(maxMileage)){
-      maxMileage <- possibleMilage[findInterval(maxMileage, possibleMilage)]
-      paste0(
-        "&maxMileage=", maxMileage
-      )
-    } else {
-      ""
-    }
-    ,
-    if(!missing(sellerTypes)){
-      paste0(
-        "&sellerTypes=", sellerTypes
-      )
-    } else {
-      ""
-    }
-    ,
-    sep = ""
-    )
+  # simpleCap()
+    # This capitalizes titles of make and model in the masterSearchURL
+    # Input: string argument from autoTrader_query
+    # Output: capitalized strings
 
-  if(recursive == FALSE){ # This saves the function a TON of time if using recursion. This needs to be done only once
-    possiblePages <- xml2::read_html(masterSearchURL) %>%
-    rvest::html_node(".pull-right > span") %>% 
-    rvest::html_text() %>% 
-    str_split(pattern = " ") %>% 
-    unlist() %>% 
-    tail(n = 1) %>% 
-    as.numeric()
-  }
-  
-  if(!missing(pages) && !is.na(pages)){
-    
-    if(pages == "all" && !is.na(possiblePages)){
-      range = 1:(possiblePages - 1)
-    } else if(is.numeric(pages) && pages >= 2){
-      range = 1:(pages - 1)
-    } else {
-      page <- 0
-      range <- 0
-      return(masterSearchURL)
-      stop("One page search made")
-    }
-    
-  } else {
-    page <- 0
-    range <- 0
-    return(masterSearchURL)
-    stop("One page search made")
-  }
-  
-  masterSearchURLs[[1]] <- masterSearchURL
-  
-  for(page in range){
-    masterSearchURLs[[page + 1]] <- autoTrader_query(make, model, zip, startYear, 
-                                                     numRecords, firstRecord = (numRecords * page), 
-                                                     endYear, searchRadius, sortBy, sellerTypes,
-                                                     minPrice, maxPrice, maxMileage, pages = NA,
-                                                     recursive = TRUE)
-  }
-  
-  return(masterSearchURLs)
-}
-
-# simpleCap() -------------------------------------------------------------
-
-simpleCap <- function(x)
-{
-  s <- strsplit(x, " ")[[1]]
-  paste(toupper(substring(s, 1,1)), substring(s, 2),
-        sep="", collapse=" ")
-}
 
 # listings_df() -----------------------------------------------------------
+
 
 listings_df <- function(masterSearchURL)
 {
@@ -222,6 +95,7 @@ listings_df <- function(masterSearchURL)
 
 # query_URL_reader() ---------------------------------------------------------
 
+
 query_URL_reader <- function(masterSearchURLs) UseMethod("query_URL_reader")
 
 query_URL_reader.list <- function(masterSearchURLs)
@@ -239,15 +113,17 @@ query_URL_reader.character <- function(masterSearchURLs)
 
 # build_listing_URL() -----------------------------------------------------
 
+
 build_listing_URL <- function(listing_url)
 {
   listing_html <- listing_url %>% 
     paste0("https://www.autotrader.com", ., sep = "") %>%
-    rvest::read_html()
+    xml2::read_html()
   return(listing_html)
 }
 
 # extract_listing_data() -------------------------------------------------------
+
 
 extract_listing_data <- function(listing_url)
 {
@@ -256,33 +132,9 @@ extract_listing_data <- function(listing_url)
                             warning(paste0("The following link is either broken or 403 error occurred: ", 
                                            listing_url, 
                                            "\nYou may be parsing too many pages at once."))
-                            Sys.sleep(1)
+                            Sys.sleep(abs(as.integer(rnorm(n = 1, mean = 2, sd = 1.5))))
                             
-                            naTable <- tibble(
-                              price                          = NA,
-                              listingPriceRedu               = NA,
-                              `Body Style`                   = NA,
-                              `Drive Type`                   = NA,
-                              Engine                         = NA,
-                              Mileage                        = NA,
-                              Transmission                   = NA,
-                              `ATC Car ID`                   = NA,
-                              Fuel                           = NA,
-                              MPG                            = NA,
-                              `Stock #`                      = NA,
-                              VIN                            = NA,
-                              carFeaturesText                = NA,
-                              exterior                       = NA,
-                              interior                       = NA,
-                              sellerComment                  = NA,
-                              `Basic Warranty`               = NA,
-                              `Corrosion Warranty`           = NA,
-                              `Drivetrain Warranty`          = NA,
-                              `Roadside Assistance Warranty` = NA,
-                              newListingIndicator            = NA,
-                              seller                         = NA,
-                              model                          = NA
-                            )
+                            naTable <- build_na_table()
                             
                             return(naTable)
                           })
@@ -297,7 +149,7 @@ extract_listing_data <- function(listing_url)
     sellerComment       <- sellerCommentExtract(sessionNode)
     warrantyInfo        <- warrantyInfoExtract(sessionNode)
     newListingIndicator <- newListingIndicatorExtract(sessionNode)
-    seller              <- listingSellerExtract(sessionNode)
+    Dealer              <- dealerExtract(sessionNode)
     model               <- modelExtract(sessionNode)
     
     rm(listing_url)
@@ -305,7 +157,7 @@ extract_listing_data <- function(listing_url)
     
     out <- c(price, priceRedu, carInfoTable, carFeatures, 
              carColor, sellerComment, warrantyInfo, 
-             newListingIndicator, seller, model) %>% 
+             newListingIndicator, Dealer, model) %>% 
       bind_cols()
     
     return(out)
@@ -318,6 +170,7 @@ extract_listing_data <- function(listing_url)
 }
 
 # scraper_apply() ---------------------------------------------------------
+
 
 scraper_apply <- function(list, cl)
 {
@@ -347,4 +200,48 @@ scraper_apply <- function(list, cl)
   
   full_df_list <- dplyr::bind_cols(full_df1, dplyr::bind_rows(full_df2))
   return(full_df_list)
+}
+
+# simpleCap() -------------------------------------------------------------
+
+
+simpleCap <- function(x)
+{
+  s <- strsplit(x, " ")[[1]]
+  paste(toupper(substring(s, 1,1)), substring(s, 2),
+        sep="", collapse=" ")
+}
+
+# build_na_table() ----------------------------------------------------------
+
+
+build_na_table <- function()
+{
+  naTable <- tibble(
+    price                          = NA,
+    listingPriceRedu               = NA,
+    `Body Style`                   = NA,
+    `Drive Type`                   = NA,
+    Engine                         = NA,
+    Mileage                        = NA,
+    Transmission                   = NA,
+    `ATC Car ID`                   = NA,
+    Fuel                           = NA,
+    MPG                            = NA,
+    `Stock #`                      = NA,
+    VIN                            = NA,
+    carFeaturesText                = NA,
+    exterior                       = NA,
+    interior                       = NA,
+    sellerComment                  = NA,
+    `Basic Warranty`               = NA,
+    `Corrosion Warranty`           = NA,
+    `Drivetrain Warranty`          = NA,
+    `Roadside Assistance Warranty` = NA,
+    newListingIndicator            = NA,
+    Dealer                         = NA,
+    model                          = NA
+  )
+  
+  return(naTable)
 }

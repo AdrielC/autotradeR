@@ -37,7 +37,7 @@
   # Newly Listed Indicator
     # Selector: ".text-md.text-orange"
 
-  # Listing Seller
+  # Dealer
     # Selector: ".text-bold div"
 
   # Model
@@ -60,7 +60,7 @@
 # 4WD Unlimited Rubicon
   # testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=484638653&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3DderivedpriceDESC%26incremental%3Dall%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D0&startYear=1981&numRecords=25&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=0&makeCode1=JEEP&modelCode1=WRANGLER"
 
-#sessionNode <- read_html(testURL)
+# sessionNode <- read_html(testURL)
 
 
 # priceExtract() ----------------------------------------------------------
@@ -287,10 +287,10 @@ newListingIndicatorExtract <- function(sessionNode)
   return(newListingIndicatorTable)
 }
 
-# listingSellerExtract() --------------------------------------------------
+# dealerExtract() --------------------------------------------------
 
 
-listingSellerExtract <- function(sessionNode)
+dealerExtract <- function(sessionNode)
 {
   dealerName <- sessionNode %>% 
     rvest::html_node(".text-bold div") %>% 

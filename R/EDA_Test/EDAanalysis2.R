@@ -1,17 +1,16 @@
 library(tidyverse)
 library(rvest) # read_html functions and the like
 library(httr)
-library(readr)
 library(leaps)
 library(MASS)
 library(grDevices) # This is for HEX color conversion
 library(pbapply) # For progress bars in queries
 library(parallel) # For parallel processing
 library(reticulate) # This is for running selenium and clicking buttons
-source("JeepScrapeFunc.R")
-source("InfoExtractionFunc.R")
-source("cleanResultFunc.R")
-source("autoTrader_scrape.R")
+source("autotrader_scrape_main.R")
+source("scrape_utils.R")
+source("data_clean.R")
+source("info_extractors.R")
 
 full_df <- bind_rows(autoTrader_scrape(make = "jeep",
                                        model = "wrangler",
@@ -129,6 +128,8 @@ full_df <- bind_rows(autoTrader_scrape(make = "jeep",
 
 autoTrader_scrape(make = "Jeep", model = "Wrangler", minPrice = 7000, zip = 84604,
                   write_csv = TRUE, fork = 7)
+
+query <- autoTrader_query()
 
 
 full_df_clean <- full_df %>%
