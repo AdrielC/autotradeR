@@ -37,7 +37,7 @@ for(i in 1:nrow(cities)){
                         return(Sys.sleep(20))
                         })
              
-             Sys.sleep(abs(as.integer(rnorm(n = 1, mean = 15, sd = 10))))
+             Sys.sleep(abs(as.integer(rnorm(n = 1, mean = 10, sd = 5))))
            })
 }
 
