@@ -7,11 +7,11 @@ library(pbapply)
 
 print(getwd())
 
-source("R/Functions/autoTrader_scrape.R")
-source("R/Functions/autoTrader_query.R")
-source("R/Functions/data_clean.R")
-source("R/Functions/info_extractors.R")
-source("R/Functions/scrape_utils.R")
+source("../R/Functions/autoTrader_scrape.R")
+source("../R/Functions/autoTrader_query.R")
+source("../R/Functions/data_clean.R")
+source("../R/Functions/info_extractors.R")
+source("../R/Functions/scrape_utils.R")
 
 # This queries autotrader for 1000 maximum results for Jeep Wranglers around 86404 in asceding distance.
 # Private sellers are specified, and the tag "Provo" is added as a column value for this query.
