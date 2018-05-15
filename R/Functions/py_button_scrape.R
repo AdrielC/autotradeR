@@ -14,7 +14,7 @@ print(getwd())
 
 # py_button_scrape --------------------------------------------------------
 
-py_button_scrape <- function(listing_url, pythonpath, modulepath)
+py_button_scrape <- function(listing_url, pythonpath, modulepath=NA)
 {
   
   print(modulepath)
@@ -25,7 +25,7 @@ py_button_scrape <- function(listing_url, pythonpath, modulepath)
   if(!exists("selenium")){
     print(modulepath)
     tryCatch(
-      selenium <<- import("selenium"),
+      print(modulepath),
       error = function(e, modulepath ){
         if(!missing(modulepath)){
           print("oklmao")
