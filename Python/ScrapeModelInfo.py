@@ -1,6 +1,7 @@
 # install chromedriver from https://chromedriver.storage.googleapis.com/index.html?path=2.38/
 # HANDY LINK: http://isaacviel.name/make-web-driver-wait-element-become-visiable/
 import sys
+import warnings
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,26 +12,28 @@ URL = "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=4
 for path in sys.path:
     print(path)
 
+print(sys.path[0])
+
 class AutoTraderSession():
     def __init__(self):
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('no-sandbox')
-
-        self.browser = webdriver.Chrome(chrome_options= chrome_options)
-        self.browser.set_page_load_timeout(60)
+        self.driver = webdriver.PhantomJS(executable_path=sys.path[0]) # PATH to installation of PhantomJS
+        self.driver.set_page_load_timeout(60)
 
     def getData(self, url, button, dataTable):
-        self.browser.get(url)
-        self.browser.find_element_by_css_selector(button).click()
+        self.driver.get(url)
+        self.driver.find_element_by_css_selector(button).click()
 
         try:
-            element = WebDriverWait(self.browser, 15).until(
+            element = WebDriverWait(self.driver, 15).until(
             EC.visibility_of_element_located((By.ID, "484656454-pane-2"))
             )
 
+        except:
+            warnings.warning("Element never became visible, returning NA")
+            return("NA")
+
         finally:
-            self.browser.quit()
+            self.driver.quit()
 
         return(element.text)
 
@@ -40,7 +43,7 @@ def scrape_button(AutoURL):
     CSSDataTable = '//*[contains(concat( " ", @class, " " ), concat( " ", "padding-horizontal-lg", " " ))]'
 
     data = Session.getData(url = AutoURL, button = CSSSelectorButton, dataTable = CSSDataTable)
-    Session.browser.quit()
+    Session.driver.quit()
     return data
 
 if __name__ == '__main__':
