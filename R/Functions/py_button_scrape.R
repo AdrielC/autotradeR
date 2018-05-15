@@ -25,15 +25,9 @@ py_button_scrape <- function(listing_url, pythonpath, modulepath=NA)
   if(!exists("selenium")){
     print(modulepath)
     tryCatch(
-      print(modulepath),
-      error = function(e, modulepath ){
-        if(!missing(modulepath)){
-          print("oklmao")
-          selenium <<- reticulate::import_from_path(module = "selenium", path = modulepath) 
-        } else { 
-          print("no")
-          stop("no selenium module found in current module path")
-        }
+      selenium <<- import("selenium"),
+      error = function(modulepath){
+        selenium <<- reticulate::import_from_path(module = "selenium", path = modulepath)
       })
   }
   
