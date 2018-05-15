@@ -27,7 +27,7 @@ class AutoTraderSession():
 
         try:
             WebDriverWait(self.browser, 15).until(
-            EC.visibility_of_element_located((By.ID, "484656454-pane-2"))
+            EC.visibility_of_element_located((By.XPATH, "//div[@data-qaid='cntnr-md-disclaimer']"))
             )
             print("Seen")
 
