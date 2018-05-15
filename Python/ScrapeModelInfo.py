@@ -17,7 +17,7 @@ class AutoTraderSession():
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('no-sandbox')
 
-        self.browser = webdriver.Chrome(chrome_options= chrome_options)
+        self.browser = webdriver.Chrome(executable_path =  path[0], chrome_options= chrome_options)
         self.browser.set_page_load_timeout(60)
 
     def getData(self, url, button, dataTable):
