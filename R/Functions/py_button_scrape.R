@@ -27,6 +27,7 @@ py_button_scrape <- function(listing_url, pythonpath, modulepath=NA)
     tryCatch(
       selenium <<- import("selenium"),
       error = function(modulepath){
+        print(modulepath)
         selenium <<- reticulate::import_from_path(module = "selenium", path = modulepath)
       })
   }
