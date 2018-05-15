@@ -22,7 +22,7 @@ py_button_scrape <- function(listing_url, pythonpath, modulepath)
   if(!exists("selenium")){
     tryCatch(
       selenium <<- import("selenium"),
-      error = function(e){
+      error = function(e, modulepath){
         if(!missing(modulepath)){
           selenium <<- reticulate::import_from_path(module = "selenium", path = modulepath) 
         } else { 
