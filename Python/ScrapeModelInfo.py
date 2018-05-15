@@ -1,7 +1,6 @@
 # install chromedriver from https://chromedriver.storage.googleapis.com/index.html?path=2.38/
 # HANDY LINK: http://isaacviel.name/make-web-driver-wait-element-become-visiable/
 # install chromedriver on ubuntu https://tecadmin.net/setup-selenium-chromedriver-on-ubuntu/
-import sys
 import warnings
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -9,9 +8,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 URL = "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=484656454&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D25&startYear=1981&numRecords=25&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=25"
-
-for path in sys.path:
-    print(path)
 
 class AutoTraderSession():
     def __init__(self):
@@ -28,16 +24,16 @@ class AutoTraderSession():
         print("Clicked")
 
         try:
-            element = WebDriverWait(self.browser, 15).until(
+            WebDriverWait(self.browser, 15).until(
             EC.visibility_of_element_located((By.ID, "484656454-pane-2"))
             )
             print("Seen")
 
         except:
-            warnings.warning("lmao")
-            return(print("damn"))
+            warnings.warning("Element never seen. Returning NA")
+            return("NA")
 
-        return(element.text)
+        return(self.browser.page_source)
 
 def scrape_button(AutoURL):
     Session = AutoTraderSession()
@@ -46,7 +42,7 @@ def scrape_button(AutoURL):
 
     data = Session.getData(url = AutoURL, button = CSSSelectorButton, dataTable = CSSDataTable)
     Session.browser.quit()
-    return print(data)
+    return data
 
 if __name__ == '__main__':
     scrape_button(URL)
