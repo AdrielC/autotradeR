@@ -1,6 +1,8 @@
 # install chromedriver from https://chromedriver.storage.googleapis.com/index.html?path=2.38/
 # HANDY LINK: http://isaacviel.name/make-web-driver-wait-element-become-visiable/
+# install chromedriver on ubuntu https://tecadmin.net/setup-selenium-chromedriver-on-ubuntu/
 import sys
+import warnings
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -17,20 +19,23 @@ class AutoTraderSession():
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('no-sandbox')
 
-        self.browser = webdriver.Chrome(executable_path =  path[0], chrome_options= chrome_options)
-        self.browser.set_page_load_timeout(60)
+        self.browser = webdriver.Chrome(chrome_options= chrome_options)
+        self.browser.set_page_load_timeout(30)
 
     def getData(self, url, button, dataTable):
         self.browser.get(url)
         self.browser.find_element_by_css_selector(button).click()
+        print("Clicked")
 
         try:
             element = WebDriverWait(self.browser, 15).until(
             EC.visibility_of_element_located((By.ID, "484656454-pane-2"))
             )
+            print("Seen")
 
-        finally:
-            self.browser.quit()
+        except:
+            warnings.warning("lmao")
+            return(print("damn"))
 
         return(element.text)
 
@@ -41,7 +46,7 @@ def scrape_button(AutoURL):
 
     data = Session.getData(url = AutoURL, button = CSSSelectorButton, dataTable = CSSDataTable)
     Session.browser.quit()
-    return data
+    return print(data)
 
 if __name__ == '__main__':
     scrape_button(URL)
