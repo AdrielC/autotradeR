@@ -10,8 +10,6 @@ listing_url <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?li
 
 listing_url <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=481471704&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26vehicleStyleCodes%3DHATCH%26incremental%3Dall%26firstRecord%3D0%26endYear%3D2019%26searchRadius%3D25%26driveGroup%3DAWD4WD&startYear=1981&numRecords=25&vehicleStyleCodes=HATCH&firstRecord=0&endYear=2019&searchRadius=25&makeCode1=SUB&modelCode1=IMPREZ&digitalRetail=true"
 
-print(getwd())
-
 # py_button_scrape --------------------------------------------------------
 
 py_button_scrape <- function(listing_url, pythonpath, modulepath=NA)
@@ -25,7 +23,7 @@ py_button_scrape <- function(listing_url, pythonpath, modulepath=NA)
       selenium <<- import("selenium"),
       error = function(modulepath){
         print(modulepath)
-        selenium <<- reticulate::import_from_path(module = "selenium", path = modulepath)
+        #selenium <<- reticulate::import_from_path(module = "selenium", path = modulepath)
       })
   }
   
