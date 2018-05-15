@@ -16,6 +16,8 @@ print(getwd())
 
 py_button_scrape <- function(listing_url, pythonpath, modulepath)
 {
+  
+  print(modulepath)
   if(!missing(pythonpath)){
     use_python(python = pythonpath) 
   }
