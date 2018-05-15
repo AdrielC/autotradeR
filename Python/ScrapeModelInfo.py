@@ -1,5 +1,6 @@
 # install chromedriver from https://chromedriver.storage.googleapis.com/index.html?path=2.38/
 # HANDY LINK: http://isaacviel.name/make-web-driver-wait-element-become-visiable/
+import sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -7,7 +8,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 URL = "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=484656454&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D25&startYear=1981&numRecords=25&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=25"
 
-print(str(PYTHONPATH))
+for path in sys.path:
+    print(path)
 
 class AutoTraderSession():
     def __init__(self):
