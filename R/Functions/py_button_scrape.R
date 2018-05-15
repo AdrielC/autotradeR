@@ -1,8 +1,8 @@
 library(reticulate)
 
-#testURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=484656454&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D25&startYear=1981&numRecords=25&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=25"
+listing_url <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=484656454&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D25&startYear=1981&numRecords=25&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=25"
 
-#secondTestURL <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=481471704&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26vehicleStyleCodes%3DHATCH%26incremental%3Dall%26firstRecord%3D0%26endYear%3D2019%26searchRadius%3D25%26driveGroup%3DAWD4WD&startYear=1981&numRecords=25&vehicleStyleCodes=HATCH&firstRecord=0&endYear=2019&searchRadius=25&makeCode1=SUB&modelCode1=IMPREZ&digitalRetail=true"
+listing_url <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=481471704&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26vehicleStyleCodes%3DHATCH%26incremental%3Dall%26firstRecord%3D0%26endYear%3D2019%26searchRadius%3D25%26driveGroup%3DAWD4WD&startYear=1981&numRecords=25&vehicleStyleCodes=HATCH&firstRecord=0&endYear=2019&searchRadius=25&makeCode1=SUB&modelCode1=IMPREZ&digitalRetail=true"
 
 
 # py_button_scrape --------------------------------------------------------
@@ -13,37 +13,37 @@ py_button_scrape <- function(listing_url, pythonpath, modulepath)
     use_python(python = pythonpath) 
   }
   
-  tryCatch(
-    selenium <<- import("selenium"),
-    error = function(e){
-      if(!missing(modulepath)){
-        selenium <<- reticulate::import_from_path(module = "selenium", path = modulepath) 
-      } else { 
-        stop("no selenium module found in current package")
-      }
-    })
+  if(!exists("selenium")){
+    tryCatch(
+      selenium <<- import("selenium"),
+      error = function(e){
+        if(!missing(modulepath)){
+          selenium <<- reticulate::import_from_path(module = "selenium", path = modulepath) 
+        } else { 
+          stop("no selenium module found in current package")
+        }
+      })
+  }
   
+  if(!exists("AutoTraderSession")){
+    source_python("Python/ScrapeModelInfo.py", envir = parent.frame())
+  }
+  
+  html_doc <- scrape_button(listing_url) %>% 
+    read_html()
+  
+  model_tables <- html_doc %>% 
+    rvest::html_nodes(".padding-horizontal-lg") %>%
+    .[[2]] %>%
+    rvest::html_nodes("table") %>%
+    .[1:2] %>% # This selects the number of table-halves in the "About This Model" tab. Most cases only 2 halves are needed/important.
+    lapply(rvest::html_table) %>% 
+    lapply(X = ., FUN = function(x) first_row_colnames(x, transpose = TRUE)) %>% 
+    bind_cols()
+  
+  return(model_tables)
   
 }
-
-
-source_python("Python/ScrapeModelInfo.py", envir = parent.frame())
-
-html_doc <- scrape_button(testURL) %>% 
-  read_html() 
-
-tables <- html_doc %>% 
-  rvest::html_nodes(".padding-horizontal-lg") %>%
-  .[[2]] %>%
-  rvest::html_nodes("table") %>%
-  .[1:2] %>% # This selects the number of table-halves in the "About This Model" tab. Most cases only 2 halves are needed/important.
-  lapply(rvest::html_table) %>% 
-  lapply(X = ., FUN = function(x) first_row_colnames(x, transpose = TRUE)) %>% 
-  bind_cols()
-
-cleandf_out <- tables %>% 
-  lapply(X = ., FUN = function(x) first_row_colnames(x, transpose = FALSE)) %>% 
-  
 
 first_row_colnames <- function(df, transpose = FALSE)
 {
@@ -58,14 +58,5 @@ first_row_colnames <- function(df, transpose = FALSE)
   return(df)
 }
 
-c <- first_row_colnames(tables[[1]], transpose = TRUE)
 
-
-x <- tibble()
-colnames(x) <- tables[seq_along(tables)]
-
-require(stats)
-formula(PlantGrowth)         # check the default formula
-pg <- unstack(PlantGrowth)   # unstack according to this formula
-pg
-stack(pg)
+print(py_button_scrape(listing_url))
