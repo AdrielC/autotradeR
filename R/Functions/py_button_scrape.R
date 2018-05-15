@@ -65,5 +65,4 @@ first_row_colnames <- function(df, transpose = FALSE)
   return(df)
 }
 
-
-print(py_button_scrape(listing_url), modulepath="/home/acasellas/anaconda3/envs/autotradeRPy35/lib/python3.5/site-packages")
+py_button_scrape(listing_url, modulepath="/home/acasellas/anaconda3/envs/autotradeRPy35/lib/python3.5/site-packages")
