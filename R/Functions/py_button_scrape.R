@@ -16,14 +16,11 @@ print(getwd())
 
 py_button_scrape <- function(listing_url, pythonpath, modulepath=NA)
 {
-  
-  print(modulepath)
   if(!missing(pythonpath)){
     use_python(python = pythonpath) 
   }
   
   if(!exists("selenium")){
-    print(modulepath)
     tryCatch(
       selenium <<- import("selenium"),
       error = function(modulepath){
@@ -65,4 +62,4 @@ first_row_colnames <- function(df, transpose = FALSE)
   return(df)
 }
 
-py_button_scrape(listing_url, modulepath="/home/acasellas/anaconda3/envs/autotradeRPy35/lib/python3.5/site-packages")
+py_button_scrape(listing_url, modulepath="/home/acasellas/anaconda3/envs/autotradeRPy35/lib/python3.5/site-packages/")
