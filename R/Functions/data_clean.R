@@ -1,6 +1,11 @@
 ### function to clean all the outputs
 
-clean_result_df <- function(df, locationName = NA){
+clean_result_df <- function(df, locationName = NA)
+{
+  if("rowNum" %in% colnames(df)){
+    df <- dplyr::select(df, -rowNum)
+  }
+  
   df <- df %>% 
     mutate(
       year = suppressWarnings(parse_number(listing_title)),
@@ -16,19 +21,31 @@ clean_result_df <- function(df, locationName = NA){
       Mileage = suppressWarnings(parse_number(Mileage)),
       newListingIndicator = factor(newListingIndicator),
       Location = locationName,
-      sellerType = ifelse(Dealer == "Private Seller", "Private", "Dealer")
-    )
+      sellerType = ifelse(Dealer == "Private Seller", "Private", "Dealer"),
+      DriveTypeGeneral = ifelse(grepl("Automatic", Transmission), "Automatic", 
+                                ifelse(grepl("Manual", Transmission), "Manual", NA)),
+      numWordsinComment = stringr::str_count(sellerComment)
+    ) %>% 
+    rowid_to_column("rowNum")
   
-  MPG <- as_data_frame(suppressWarnings(str_split_fixed(df$MPG, " / ", 2)))
-  colnames(MPG) <- c("CityMpg", "HyMpg")
+  if( !("CityMpg" %in% colnames(df)) ){
+    MPG <- as_data_frame(suppressWarnings(str_split_fixed(df$MPG, " / ", 2)))
+    colnames(MPG) <- c("CityMpg", "HyMpg")
+    
+    df <- as_tibble(cbind(df, MPG) %>% 
+                              mutate(CityMpg = suppressWarnings(parse_number(CityMpg)),
+                                     HyMpg = suppressWarnings(parse_number(HyMpg)))) %>% 
+      dplyr::select(-MPG)
+  }
   
-  full_clean <- as_tibble(cbind(df, MPG) %>% 
-                            mutate(CityMpg = suppressWarnings(parse_number(CityMpg)),
-                                   HyMpg = suppressWarnings(parse_number(HyMpg)))) %>% 
-    rowid_to_column("rowNum") %>% 
-    dplyr::select(-MPG)
+  df <- df %>% 
+    dplyr::select(exterior) %>% 
+    map_dfc(function(x){
+      df <- grDevices::col2rgb(x)
+      df <- as_tibble(t(df))
+      return(df)
+    }) %>% 
+    bind_cols(. ,df)
   
-  rm(MPG)
-  
-  return(full_clean)
+  return(df)
 }

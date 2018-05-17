@@ -7,10 +7,12 @@ library(grDevices) # This is for HEX color conversion
 library(pbapply) # For progress bars in queries
 library(parallel) # For parallel processing
 library(reticulate) # This is for running selenium and clicking buttons
-source("autotrader_scrape_main.R")
-source("scrape_utils.R")
-source("data_clean.R")
-source("info_extractors.R")
+
+source("R/Functions/autoTrader_scrape.R")
+source("R/Functions/autoTrader_query.R")
+source("R/Functions/data_clean.R")
+source("R/Functions/info_extractors.R")
+source("R/Functions/scrape_utils.R")
 
 full_df <- bind_rows(autoTrader_scrape(make = "jeep",
                                        model = "wrangler",
@@ -135,6 +137,7 @@ query <- autoTrader_query()
 full_df_clean <- full_df %>%
   dplyr::select(-rowNum) %>%
   rowid_to_column("rowNum")
+
 
 full_df_clean %>%
   filter(!is.na(sellerType),

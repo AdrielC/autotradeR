@@ -245,3 +245,19 @@ build_na_table <- function()
   
   return(naTable)
 }
+
+
+# first_row_colnames() ----------------------------------------------------
+
+first_row_colnames <- function(df, transpose = FALSE)
+{
+  if(transpose == TRUE){
+    df <- t(df)
+  }
+  
+  colnames(df) <- df[1,]
+  df <- tibble::as_tibble(df)
+  df <- df[-1,]
+  
+  return(df)
+}
