@@ -7,6 +7,7 @@ library(pbapply)
 library(reticulate)
 
 print(getwd())
+setwd("Data/")
 
 source("../R/Functions/autoTrader_scrape.R")
 source("../R/Functions/autoTrader_query.R")
@@ -22,25 +23,37 @@ cities <- read_csv("major_cities.csv")
 cities <- cities %>% 
   mutate(Zip = substr(Zip, 0, 5))
 
-for(i in 1:nrow(cities)){
+jeepModels <- c("Cherokee", 
+               "CJ", 
+               "Comanche", 
+               "Commander", 
+               "Compass", 
+               "Grand+Cherokee", 
+               "Grand+Wagoneer",
+               "Liberty",
+               "Patriot",
+               "Renegade",
+               "Wrangler")
+
+for(model in seq_along(jeepModels)){
   
-  tryCatch(autoTrader_scrape(make = "Jeep", model = "Wrangler", zip = cities$Zip[i], pages = "all",
-                             sellerType = "d", locationName = cities$City[i], fork = 8, write_csv = T),
-           
-           error = function(e){
-             Sys.sleep(20)
+  for(i in 1:nrow(cities)){
+    
+    tryCatch(autoTrader_scrape(make = "Jeep", model = jeepModels[model], zip = cities$Zip[i], pages = "all",
+                               sellerType = "d", locationName = cities$City[i], fork = 8, write_csv = T),
              
-             tryCatch(autoTrader_scrape(make = "Jeep", model = "Wrangler", zip = cities$Zip[i], pages = "all",
-                            sellerType = "d", locationName = cities$City[i], fork = 8, 
-                            write_csv = T),
-                      
-                      error = function(e){
-                        return(Sys.sleep(20))
+             error = function(e){
+               Sys.sleep(abs(as.integer(rnorm(n = 1, mean = 10, sd = 4))))
+               
+               tryCatch(autoTrader_scrape(make = "Jeep", model = "Wrangler", zip = cities$Zip[i], pages = "all",
+                                          sellerType = "d", locationName = cities$City[i], fork = 8, 
+                                          write_csv = T),
+                        
+                        error = function(e){
+                          return(Sys.sleep(abs(as.integer(rnorm(n = 1, mean = 20, sd = 4)))))
                         })
-             
-             Sys.sleep(abs(as.integer(rnorm(n = 1, mean = 10, sd = 5))))
-           })
+               
+               Sys.sleep(abs(as.integer(rnorm(n = 1, mean = 10, sd = 5))))
+             })
+  }
 }
-
-
-
