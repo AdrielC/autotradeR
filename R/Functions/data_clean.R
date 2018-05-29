@@ -41,7 +41,7 @@ clean_result_df <- function(df, locationName = NA)
   df <- df %>% 
     dplyr::select(exterior) %>% 
     map_dfc(function(x){
-      df <- grDevices::col2rgb(x)
+      df <- grDevices::col2rgb(x) # This changes hex colors (one column) to rgb values(3 columns).
       df <- as_tibble(t(df))
       return(df)
     }) %>% 

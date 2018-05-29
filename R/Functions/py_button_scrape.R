@@ -10,7 +10,7 @@ library(reticulate)
 
 #listing_url <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=481471704&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26vehicleStyleCodes%3DHATCH%26incremental%3Dall%26firstRecord%3D0%26endYear%3D2019%26searchRadius%3D25%26driveGroup%3DAWD4WD&startYear=1981&numRecords=25&vehicleStyleCodes=HATCH&firstRecord=0&endYear=2019&searchRadius=25&makeCode1=SUB&modelCode1=IMPREZ&digitalRetail=true"
 
-selenium <- import("selenium")
+#selenium <- import("selenium")
 
 # py_button_scrape --------------------------------------------------------
 
@@ -48,5 +48,4 @@ py_button_scrape <- function(listing_url, pythonpath, modulepath=NA)
   
 }
 
-py_button_scrape(listing_url, modulepath="/home/acasellas/anaconda3/envs/autotradeRPy35/lib/python3.5/site-packages/")
-
+#MODEL_DATA <- py_button_scrape(listing_url)

@@ -45,14 +45,26 @@ out_hc <- all_jeeps %>%
 plot(out_hc)
 
 # Plotting colors
-colors <- all_jeeps %>% 
+colors <- all_jeeps %>%
   distinct(exterior, .keep_all = TRUE) %>% 
   dplyr::select(red:blue, exterior) %>% 
   mutate(hex = as.character(exterior))
 
 colors[10,5] <- "#FFFFFF"
 
-plot3d(x = colors[,1:3], col = colors[,5],main="k-means clusters")
+colCount <- all_jeeps %>% 
+  count(exterior) %>% 
+  mutate(hex = as.character(exterior))
+  
+colCount[19,3] <- "#FFFFFF"
+
+colorsFull <- full_join(colors, colCount)
+
+plot3d(x = colors[,1:3], 
+       col = colors[,5][[1]], 
+       main="k-means clusters", 
+       size = log(colorsFull$n), 
+       type = "s")
 
 
 plot(train$Education, train$Fertility)
@@ -60,4 +72,4 @@ plot(train$Catholic, train$Fertility)
 plot(train$Infant.Mortality, train$Fertility)
 hist(train$Fertility)
 
-first_row_colnames(col2rgb(all_jeeps$exterior[1]), transpose = TRUE)
+

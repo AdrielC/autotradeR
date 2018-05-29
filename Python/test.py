@@ -9,7 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 ## For testing (obvi, lmao)
-testURL = "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=484656454&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D25&startYear=1981&numRecords=25&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=25"
+testURL = "https://www.overstock.com/?prop45=o.co"
 
 class AutoTraderSession():
     def __init__(self):
@@ -24,26 +24,33 @@ class AutoTraderSession():
         self.browser.get(url)
         self.browser.find_element_by_css_selector(button).click()
         print("Clicked")
+        print(self.browser.get_cookies())
 
         try:
             WebDriverWait(self.browser, 15).until(
-            EC.visibility_of_element_located((By.XPATH, "//div[@data-qaid='cntnr-md-disclaimer']"))
+            EC.visibility_of_element_located((By.XPATH, '//*[contains(concat( " ", @class, " " ), concat( " ", "heading-2", " " ))]'))
             )
             print("Seen")
 
         except:
-            warnings.warning("Element never seen. Returning NA")
+            #warnings.warning("Element never seen. Returning NA")
             return("NA")
+
+        self.browser.find_element_by_css_selector(".button").click()
+
 
         return(self.browser.page_source)
 
 def scrape_button(AutoURL):
     Session = AutoTraderSession()
-    CSSSelectorButton = ".active+ li a , .active+ li span" # This is the model info button
-    CSSDataTable = '//*[contains(concat( " ", @class, " " ), concat( " ", "padding-horizontal-lg", " " ))]'
+    CSSSelectorButton = ".top:nth-child(11) .top-nav-links-line" # This is the model info button
+    CSSDataTable = '//*[contains(concat( " ", @class, " " ), concat( " ", "heading-2", " " ))]'
 
     data = Session.getData(url = AutoURL, button = CSSSelectorButton, dataTable = CSSDataTable)
     Session.browser.quit()
+
+    print("\n\n\n\n\n WOW 😱 \n\n\n\n\n")
+
     return data
 
 ## For testing
