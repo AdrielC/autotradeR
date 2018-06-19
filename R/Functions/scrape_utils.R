@@ -114,11 +114,16 @@ query_URL_reader.character <- function(masterSearchURLs)
 # build_listing_URL() -----------------------------------------------------
 
 
-build_listing_URL <- function(listing_url)
+build_listing_URL <- function(listing_url, read = TRUE)
 {
   listing_html <- listing_url %>% 
-    paste0("https://www.autotrader.com", ., sep = "") %>%
-    xml2::read_html()
+    paste0("https://www.autotrader.com", ., sep = "") 
+  
+  if(read == TRUE){
+    listing_html <- listing_html %>%
+      xml2::read_html()
+  }
+  
   return(listing_html)
 }
 

@@ -2,6 +2,8 @@
 # HANDY LINK: http://isaacviel.name/make-web-driver-wait-element-become-visiable/
 # install chromedriver on ubuntu https://tecadmin.net/setup-selenium-chromedriver-on-ubuntu/
 
+import pandas as pd
+import unicodecsv as csv
 import warnings
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -24,7 +26,24 @@ class AutoTraderSession():
         self.browser.get(url)
         self.browser.find_element_by_css_selector(button).click()
         print("Clicked")
-        print(self.browser.get_cookies())
+
+        cookies = self.browser.get_cookies()
+        print(type(cookies))
+
+        #def gen_rows(rowlist):
+        #    for row in enumerate(rowlist):
+        #        yield OrderedDict(row)
+
+        keys = cookies[0].keys()
+        with open('test.csv', 'wb') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(cookies)
+
+
+        #(pd.DataFrame.from_dict(data = cookies[1], orient='index')
+        #    .to_csv('dict_file.csv', header=False))
+
 
         try:
             WebDriverWait(self.browser, 15).until(

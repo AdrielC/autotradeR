@@ -9,7 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 ## For testing (obvi, lmao)
-testURL = "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=484656454&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26sortBy%3Drelevance%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D25&startYear=1981&numRecords=25&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=25"
+#testURL = "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=483451570&zip=96801&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D96801%26sellerTypes%3Dp%26startYear%3D1981%26numRecords%3D100%26sortBy%3Drelevance%26incremental%3Dall%26firstRecord%3D800%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D0&sellerTypes=p&startYear=1981&numRecords=100&firstRecord=800&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=0&makeCode1=JEEP&modelCode1=WRANGLER"
 
 class AutoTraderSession():
     def __init__(self):
@@ -18,7 +18,7 @@ class AutoTraderSession():
         #chrome_options.add_argument('no-sandbox')
 
         self.browser = webdriver.Chrome(chrome_options= chrome_options)
-        self.browser.set_page_load_timeout(30)
+        self.browser.set_page_load_timeout(60)
 
     def getData(self, url, button, dataTable):
         self.browser.get(url)
@@ -36,6 +36,14 @@ class AutoTraderSession():
             return("NA")
 
         return(self.browser.page_source)
+        
+    
+    def open_url(self, url):
+      # try: 
+      self.browser.get(url)
+        
+      # except:
+      #   print("lmao")
 
 def scrape_button(AutoURL):
     Session = AutoTraderSession()
@@ -46,6 +54,15 @@ def scrape_button(AutoURL):
     Session.browser.quit()
     return data
 
-## For testing
-if __name__ == '__main__':
-     scrape_button(testURL)
+def visit_url(url):
+  Session = AutoTraderSession()
+  Session.open_url(url)
+  
+    
+# ## For testing
+# if __name__ == '__main__':
+  # Session = AutoTraderSession()
+  # Session.open_url(testURL)
+
+
+  

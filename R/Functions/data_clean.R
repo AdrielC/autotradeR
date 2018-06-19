@@ -24,7 +24,7 @@ clean_result_df <- function(df, locationName = NA)
       sellerType = ifelse(Dealer == "Private Seller", "Private", "Dealer"),
       DriveTypeGeneral = ifelse(grepl("Automatic", Transmission), "Automatic", 
                                 ifelse(grepl("Manual", Transmission), "Manual", NA)),
-      numWordsinComment = stringr::str_count(sellerComment)
+      numWordsinComment = lengths(strsplit(sellerComment, "\\W+"))
     ) %>% 
     rowid_to_column("rowNum")
   
