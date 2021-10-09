@@ -1,4 +1,21 @@
-### function to clean all the outputs
+
+# count_upper_words(): Counts the number of words in a string that are uppercase -------------------------------------------------------
+
+count_upper_words <- function(characterVec)
+{
+  
+  wordList <- str_extract_all(characterVec, "[[:alpha:]]+")
+  count <- lapply(wordList, function(x) x == toupper(x))
+  count <- sum(unlist(count))
+  
+  return(count)
+  
+}
+
+
+# clean_result_df ---------------------------------------------------------
+
+
 
 clean_result_df <- function(df, locationName = NA)
 {

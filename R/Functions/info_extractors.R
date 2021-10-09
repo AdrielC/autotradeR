@@ -69,7 +69,7 @@
 priceExtract <- function(sessionNode)
 {
   listingPrice <- sessionNode %>% 
-    rvest::html_node(".text-lg strong") %>% 
+    rvest::html_node(".margin-right-auto div") %>% 
     rvest::html_text()
   
   listingPrice <- tryCatch(suppressWarnings(readr::parse_number(listingPrice)),
@@ -88,7 +88,7 @@ priceExtract <- function(sessionNode)
 priceReduExtract <- function(sessionNode)
 {
   listingPriceRedu <- sessionNode %>% 
-    rvest::html_node(".text-success") %>% 
+    rvest::html_node(".badge-success") %>% 
     rvest::html_text()
   
   if(is.na(listingPriceRedu)){

@@ -6,12 +6,21 @@
 
 # autoTrader_query() ------------------------------------------------------
 
-autoTrader_query <- function(make, model, zip, 
-                             startYear=1981, numRecords=100, 
-                             firstRecord = 0, endYear= 2019, # The following year
-                             searchRadius = 0, sortBy = "relevance",
-                             sellerTypes, minPrice, maxPrice, maxMileage,
-                             pages, recursive = FALSE)
+autoTrader_query <- function(make=NA_character_,
+                             model=NA_character_,
+                             zip=NA_integer_,
+                             startYear=1981,
+                             numRecords=1000,
+                             firstRecord = 0,
+                             endYear= 2022, # The following year
+                             searchRadius = 100,
+                             sortBy = "relevance",
+                             sellerTypes,
+                             minPrice,
+                             maxPrice,
+                             maxMileage,
+                             pages,
+                             recursive = FALSE)
 {
   possibleMilage <- c(0, seq(15000, 75000, by = 15000), 100000, 150000, 200000, 200001)
   masterSearchURLs <- list(NULL)
@@ -20,12 +29,22 @@ autoTrader_query <- function(make, model, zip,
     warning("Minimum number of records per page is 25! Returning 25 listings.")
   }
   
+  path <- if(is.na(make) && is.na(model)) {
+    "/all-cars"
+  } else {
+    paste0(
+      ifelse(is.na(make), "", paste0("/", simpleCap(make))),
+      ifelse(is.na(model), "", paste0("/", simpleCap(model)))
+    )
+  }
+  
   masterSearchURL <- paste0(
-    "https://www.autotrader.com/cars-for-sale/",
-    simpleCap(make), "/",
-    simpleCap(model), "/",
     
-    if(!missing(zip)){
+    "https://www.autotrader.com/cars-for-sale",
+    
+    path,
+    
+    if(!missing(zip) && !is.na(zip)){
       paste0(
         "?zip=", zip, "&"
       )

@@ -1,3 +1,5 @@
+library(rvest)
+
 # App Description ---------------------------------------------------------
   ### This app will pull all* of the listings from autotrader.com given a URL resulting from a search
   ### on the site with any parameters. (e.g. https://www.autotrader.com/cars-for-sale/Jeep/Wrangler/Provo+UT-84604?zip=84604&startYear=1981&numRecords=25&sortBy=relevance&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=50 )
@@ -47,7 +49,9 @@ listings_df <- function(masterSearchURL)
   listings_html <- masterSearchURL %>% 
     xml2::read_html()
   
-  noResult <- rvest::html_text(rvest::html_node(listings_html, ".text-normal"))
+  noResult <- html_node %>%
+    html_node(".text-normal") %>%
+    html_text()
   
   if(!is.na(noResult)){ # noResult will be NA if there are results for the search
     if(noResult == "No results found."){
@@ -66,6 +70,8 @@ listings_df <- function(masterSearchURL)
   listings_nodeset <- listings_html %>% 
     rvest::html_nodes(".col-sm-9 .text-md") %>%
     rvest::html_attrs() 
+  
+  print(listings_nodeset)
   
   listings_df <- listings_nodeset %>%
     tibble(
@@ -266,3 +272,4 @@ first_row_colnames <- function(df, transpose = FALSE)
   
   return(df)
 }
+

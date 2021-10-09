@@ -46,11 +46,12 @@ for(model in seq_along(jeepModels)){
              error = function(e){
                Sys.sleep(abs(as.integer(rnorm(n = 1, mean = 10, sd = 4))))
                
-               tryCatch(autoTrader_scrape(make = "Jeep", model = "Wrangler", zip = cities$Zip[i], pages = "all",
+               tryCatch(autoTrader_scrape(make = "Jeep", model = jeepModels[model], zip = cities$Zip[i], pages = "all",
                                           sellerType = "d", locationName = cities$City[i], fork = 8, 
                                           write_csv = T),
                         
                         error = function(e){
+                          warning("It's going down")
                           return(Sys.sleep(abs(as.integer(rnorm(n = 1, mean = 20, sd = 4)))))
                         })
                

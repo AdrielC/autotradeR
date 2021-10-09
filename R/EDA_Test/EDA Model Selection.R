@@ -16,7 +16,6 @@ source("R/Functions/data_clean.R")
 source("R/Functions/info_extractors.R")
 source("R/Functions/scrape_utils.R")
 
-
 all_jeeps <- read_csv("Data/full_scrape_test1.csv") %>%
   bind_rows(read_csv("Data/full_scrape_test2.csv")) %>%
   distinct(`ATC Car ID`, .keep_all = TRUE) %>% 
@@ -28,11 +27,17 @@ all_jeeps <- read_csv("Data/full_scrape_test1.csv") %>%
                                   grepl("Sahara", listing_title, ignore.case = TRUE)   ~ "Sahara",
                                   grepl("Willy", listing_title, ignore.case = TRUE)    ~ "Willys",
                                   grepl("X", listing_title, ignore.case = TRUE)        ~ "X",
-                                  TRUE                                                 ~ "other"))
-  
+                                  TRUE                                                 ~ "other"),
+         numUpperWordsinComment = unlist(lapply(sellerComment, count_upper_words)),
+         branded = case_when(grepl("branded", sellerComment, ignore.case = TRUE)  ~ TRUE,
+                             TRUE                                                 ~ FALSE),
+         logNumUpperWordsinComment = log1p(numUpperWordsinComment)) %>% 
+  clean_result_df()
 
-all_jeeps <- clean_result_df(all_jeeps)
 
+all_jeeps %>% 
+  ggplot(aes(x = modelGeneral, fill = ownershipStatus)) +
+  geom_histogram(position = "fill", stat = "count")
 
 # kmeans on RGB data ------------------------------------------------------
 
@@ -115,47 +120,49 @@ outMOD <- all_jeeps %>%
        DriveTypeGeneral + 
        green*blue + 
        listingPriceRedu + 
-       Mileage + 
+       modelGeneral*Mileage + 
        ownershipStatus + 
        newListingIndicator +
        Transmission + 
        Engine +
        numWordsFeatures*sellerType +
-       lifted + 
-       modelGeneral,
+       lifted +
+       numUpperWordsinComment*sellerType,
      data = .)
 
+summary(outMOD)
 
-all_jeeps %>% 
-  dplyr::select(-price, 
-                  year , 
-                  numWordsinComment ,
-                  doors , 
-                  DriveTypeGeneral , 
-                  green ,
-                  blue , 
-                  listingPriceRedu , 
-                  Mileage , 
-                  ownershipStatus , 
-                  newListingIndicator ,
-                  Transmission , 
-                  Engine ,
-                  numWordsFeatures,
-                  sellerType ,
-                  lifted ,
-                  modelGeneral) %>% 
-  broom::augment(outMOD, .) %>% 
-  .[ ,c(".fitted", "rowNum", "year", "Mileage", "listing_url")] -> predicted
+
+# all_jeeps %>% 
+#   dplyr::select(-price, 
+#                   year , 
+#                   numWordsinComment ,
+#                   doors , 
+#                   DriveTypeGeneral , 
+#                   green ,
+#                   blue , 
+#                   listingPriceRedu , 
+#                   Mileage , 
+#                   ownershipStatus , 
+#                   newListingIndicator ,
+#                   Transmission , 
+#                   Engine ,
+#                   numWordsFeatures,
+#                   sellerType ,
+#                   lifted ,
+#                   modelGeneral) %>% 
+#   broom::augment(outMOD, .) %>% 
+#   .[ ,c(".fitted", "rowNum", "year", "Mileage", "listing_url")] -> predicted
   
 
-good_deals <- predicted %>% 
-  left_join(all_jeeps[,c("rowNum", "price")]) %>% 
-  mutate(residual = .fitted - price) %>% 
-  filter(Mileage < 50000,
-         year > 2014) %>% 
-  top_n(10, residual) %>% 
-  dplyr::select(residual, listing_url) %>% 
-  arrange(desc(residual))
+# good_deals <- predicted %>% 
+#   left_join(all_jeeps[,c("rowNum", "price")]) %>% 
+#   mutate(residual = .fitted - price) %>% 
+#   filter(Mileage < 50000,
+#          year > 2014) %>% 
+#   top_n(10, residual) %>% 
+#   dplyr::select(residual, listing_url) %>% 
+#   arrange(desc(residual))
 
 # Python Setup ------------------------------------------------------------
 
@@ -208,22 +215,11 @@ provo_data <- provo_full %>%
                                   grepl("Sahara", listing_title, ignore.case = TRUE)   ~ "Sahara",
                                   grepl("Willy", listing_title, ignore.case = TRUE)    ~ "Willys",
                                   grepl("X", listing_title, ignore.case = TRUE)        ~ "X",
-                                  TRUE                                                 ~ "other")) %>% 
+                                  TRUE                                                 ~ "other"),
+         numUpperWordsinComment = unlist(lapply(sellerComment, count_upper_words)),
+         logNumUpperWordsinComment = log1p(numUpperWordsinComment)) %>% 
   clean_result_df()
 
-
-
-outMOD <- provo_data %>% 
-  lm(price ~ year + 
-       sellerType +
-       doors + 
-       DriveTypeGeneral + 
-       listingPriceRedu + 
-       Mileage + 
-       ownershipStatus + 
-       newListingIndicator +
-       Engine, 
-     data = .)
 
 newData <- provo_data %>% 
   filter(Transmission != "Information Unavailable") 
@@ -232,38 +228,17 @@ newData$Transmission <- droplevels(newData$Transmission)
 
 levels(newData$Transmission)
 
-newData %>% 
-  dplyr::select(-price, 
-                year , 
-                numWordsinComment ,
-                doors , 
-                DriveTypeGeneral , 
-                green ,
-                blue , 
-                listingPriceRedu , 
-                Mileage , 
-                ownershipStatus , 
-                newListingIndicator ,
-                Transmission , 
-                Engine ,
-                numWordsFeatures,
-                sellerType ,
-                lifted ,
-                modelGeneral) -> newmodel
-
-
-predictions <- cbind(newmodel, pred = predict(outMOD, newdata = newmodel))
+predictions <- cbind(newData, pred = predict(outMOD, newdata = newData))
 
 good_deals <- predictions %>% 
   left_join(provo_data[,c("rowNum", "price")]) %>% 
   mutate(residual = pred - price) %>% 
   filter(doors == 4,
-         price < 30000,
+         price < 24000,
          price > 10000,
          Mileage < 50000,
-         year > 2013,
-         sellerType == "Dealer") %>% 
-  top_n(10, residual) %>%
+         year > 2013) %>% 
+  top_n(5, residual) %>%
   arrange(desc(residual))
 
 lapply(X = as.list(good_deals$listing_url), FUN = function(X){build_listing_URL(X, read = FALSE) %>% visit_url()})
@@ -354,3 +329,184 @@ good_deals <- predicted %>%
 
 
 lapply(X = as.list(good_deals$listing_url), FUN = function(X){build_listing_URL(X, read = FALSE) %>% visit_url()})
+
+
+
+provo_data %>% 
+  filter(Mileage < 200000,
+         price < 100000) %>%
+  dplyr::select(price, Mileage, year, sellerType) %>% 
+  plot3d(x = .$Mileage,
+         y = .$price,
+         z = .$year)
+
+
+
+
+
+
+# Car Prediction ------------------------------------------------------------
+
+JeepSahara <- "https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=485403585&zip=84604&referrer=%2Fcars-for-sale%2Fsearchresults.xhtml%3Fzip%3D84604%26startYear%3D1981%26numRecords%3D100%26sortBy%3Drelevance%26maxPrice%3D17000%26incremental%3Dall%26firstRecord%3D0%26endYear%3D2019%26modelCodeList%3DWRANGLER%26makeCodeList%3DJEEP%26searchRadius%3D50&startYear=1981&numRecords=100&maxPrice=17000&firstRecord=0&endYear=2019&modelCodeList=WRANGLER&makeCodeList=JEEP&searchRadius=50&makeCode1=JEEP&modelCode1=WRANGLER"
+
+jeepInfoTable <- extract_listing_data(JeepSahara)
+
+jeepInfoTable$price <- 16995
+jeepInfoTable$listingPriceRedu <- FALSE
+jeepInfoTable$`Body Style` <- "Sport Utility"
+
+SaharaInfo <- all_jeeps[which(all_jeeps$modelGeneral == "Sahara"),][1,]
+SaharaInfo$listing_title <- "Used 2007 Jeep Wrangler 4WD Unlimited Sahara"
+SaharaInfo$price <- 16995
+SaharaInfo$listingPriceRedu <- FALSE
+SaharaInfo$`Body Style` <- "Sport Utility"
+SaharaInfo$Mileage <- 95829
+SaharaInfo$sellerType <- "Dealer"
+SaharaInfo$year <- 2007
+SaharaInfo$Transmission <- "5-Speed Automatic"
+SaharaInfo$Transmission <- as.factor(SaharaInfo$Transmission)
+
+prediction <- cbind(SaharaInfo, pred = predict(outMOD, newdata = SaharaInfo))
+
+
+
+
+all_Sahara <- all_jeeps[which(all_jeeps$modelGeneral == "Sahara"),]
+
+outMOD <- lm(price ~ 
+               Mileage +
+               Transmission +
+               year +
+               model
+             , data = all_Sahara)
+
+summary(outMOD)
+
+newData <- SaharaInfo %>% 
+  dplyr::select(Mileage, Transmission, year, model)
+
+prediction <- cbind(newData, pred = predict(outMOD, newdata = newData))
+
+
+
+
+
+
+
+# X -----------------------------------------------------------------------
+
+
+
+all_x <- all_jeeps[which(all_jeeps$modelGeneral == "X"),]
+
+outMOD <- lm(price ~ 
+               Mileage +
+               year +
+               doors +
+               lifted
+             , data = all_x)
+
+summary(outMOD)
+
+newData <- tibble(Mileage = 125732,
+                  year = 2009,
+                  doors = 4,
+                  lifted = FALSE)
+
+prediction <- cbind(newData, pred = predict(outMOD, newdata = newData))
+
+prediction
+
+
+
+
+
+
+
+# Rubicon -----------------------------------------------------------------------
+
+
+all_rubicon <- all_jeeps[which(all_jeeps$modelGeneral == "Rubicon"),]
+
+outMOD <- lm(price ~ 
+               Mileage * year +
+               doors * lifted +
+               ownershipStatus +
+               newListingIndicator +
+               listingPriceRedu +
+               numUpperWordsinComment
+             , data = all_rubicon)
+
+summary(outMOD)
+
+newData <- tibble(Mileage = 126481,
+                  year = 2009,
+                  doors = 4,
+                  lifted = FALSE,
+                  ownershipStatus = "Used",
+                  newListingIndicator = TRUE,
+                  listingPriceRedu = FALSE,
+                  numUpperWordsinComment = 14
+                  )
+
+newData$newListingIndicator <- factor(newData$newListingIndicator)
+
+prediction <- cbind(newData, pred = predict(outMOD, newdata = newData))
+
+prediction
+
+
+outMOD <- all_jeeps %>% 
+  lm(price ~ year + 
+       numWordsinComment*sellerType +
+       doors + 
+       DriveTypeGeneral + 
+       green*blue + 
+       listingPriceRedu + 
+       modelGeneral*Mileage + 
+       ownershipStatus + 
+       newListingIndicator +
+       Transmission + 
+       Engine +
+       numWordsFeatures*sellerType +
+       lifted +
+       numUpperWordsinComment*sellerType,
+     data = .)
+
+summary(outMOD)
+
+
+newData <- tibble(Mileage = 126481,
+                  year = 2009,
+                  doors = 4,
+                  lifted = FALSE,
+                  ownershipStatus = "Used",
+                  newListingIndicator = TRUE,
+                  listingPriceRedu = FALSE,
+                  numUpperWordsinComment = 14,
+                  numWordsinComment = 339,
+                  DriveTypeGeneral = "Automatic",
+                  green = 200,
+                  blue = 200,
+                  modelGeneral = "Rubicon",
+                  Transmission = "Automatic",
+                  Engine = "6-Cylinder",
+                  sellerType = "Dealer",
+                  numWordsFeatures = 25
+                  )
+
+newData$newListingIndicator <- factor(newData$newListingIndicator)
+
+prediction <- cbind(newData, pred = predict(outMOD, newdata = newData))
+
+prediction
+
+
+
+
+all_rubicon %>% 
+  filter(price < 70000) %>% 
+  ggplot(aes(x = Mileage, y = price, fill = sellerType)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
