@@ -5,9 +5,9 @@ library(pbapply) # For progress bars in queries
 library(parallel) # For parallel processing
 library(purrr)
 library(glue)
-source("R/Functions/scrape_utils.R")
-source("R/Functions/autoTrader_query.R")
-source("R/Functions/_base.R")
+source("../R/Functions/scrape_utils.R")
+source("../R/Functions/autoTrader_query.R")
+source("../R/Functions/_base.R")
 
 
 ## Define function that will generate result urls from queries
@@ -59,40 +59,50 @@ read_listings.list <- function(x, fork=NULL) {
     reduce(bind_rows, .init = data.frame())
 }
 
-## Generate urls for paginated search results
-query_urls <- listResultPages(AutoTrader(),
-                              AutoQuery(minPrice = 100),
-                              pages=100,
-                              numRecords=25)
 
-## Extract info from each result on each page and collect into a single dataframe
-listings <- read_listings(query_urls, fork = 32)
-
-show(count(listings))
-
-## Analyze results
-listings_filtered <- listings %>%
-  distinct(vehicleIdentificationNumber, .keep_all=TRUE) %>%
-  group_by(manufacturer.name) %>%
-  mutate(model_count = n()) %>%
-  filter(model_count > 5) %>%
-  ungroup() %>% 
-  mutate(is_private=str_detect(offers.seller.name, "(?!=Private)( (Owner|Seller).*)"),
-         mileageFromOdometer.value = readr::parse_number(mileageFromOdometer.value))
-
-count(listings_filtered)
-
-listings_filtered %>%
-  group_by(is_private) %>%
-  count()
-
-## Plot data
-listings_filtered %>%
-  mutate(mileageFromOdometer.value = readr::parse_number(mileageFromOdometer.value)) %>%
-  ggplot(aes(y=log1p(offers.price),
-             x=mileageFromOdometer.value, 
-             color=is_private)) +
-  geom_point() + 
-  geom_smooth(method = "lm", alpha=0.2) +
-  facet_wrap(.~manufacturer.name)
-
+test_scrape <- function() {
+  
+  ## Generate urls for paginated search results
+  query_urls <- listResultPages(AutoTrader(),
+                                AutoQuery(
+                                  make = "Jeep",
+                                  model = "Wrangler",
+                                  minPrice = 25000,
+                                  maxMileage = 60000L,
+                                  sellerType = c('p')),
+                                pages=100,
+                                numRecords=25)
+  
+  ## Extract info from each result on each page and collect into a single dataframe
+  test_autotrader_listings <- read_listings(query_urls, fork = 32)
+  
+  show(count(listings))
+  
+  ## Analyze results
+  test_autotrader_listings <<- test_autotrader_listings %>%
+    distinct(vehicleIdentificationNumber, .keep_all=TRUE) %>%
+    group_by(manufacturer.name) %>%
+    mutate(model_count = n()) %>%
+    filter(model_count > 5) %>%
+    ungroup() %>% 
+    mutate(is_private=str_detect(offers.seller.name, "(?!=Private)( (Owner|Seller).*)"),
+           mileageFromOdometer.value = readr::parse_number(mileageFromOdometer.value))
+  
+  count(listings_filtered)
+  
+  listings_filtered %>%
+    group_by(is_private) %>%
+    count()
+  
+  ## Plot data
+  listings_filtered %>%
+    mutate(mileageFromOdometer.value = readr::parse_number(mileageFromOdometer.value)) %>%
+    ggplot(aes(y=log1p(offers.price),
+               x=mileageFromOdometer.value, 
+               color=is_private)) +
+    geom_point() + 
+    geom_smooth(method = "lm", alpha=0.2) +
+    facet_wrap(.~manufacturer.name)
+  
+  test_autotrader_listings
+}
