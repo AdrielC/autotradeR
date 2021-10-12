@@ -10,7 +10,7 @@ paginate_search <- function(masterSearchURL,
                             numRecords=25,
                             firstRecord = 0,
                             recursive = FALSE,
-                            pages)
+                            pages="all")
 {
   
   if(numRecords < 25 && recursive == FALSE){
@@ -21,8 +21,7 @@ paginate_search <- function(masterSearchURL,
     param_set(masterSearchURL, "firstRecord", firstRecord) %>%
     param_set("numRecords", numRecords)
   
-  possibleMilage <- c(0, seq(15000, 75000, by = 15000), 100000, 150000, 200000, 200001)
-  masterSearchURLs <- list()
+  masterSearchURLs <- list(masterSearchURL)
   
   if(numRecords < 25 && recursive == FALSE){
     warning("Minimum number of records per page is 25! Returning 25 listings.")
@@ -44,28 +43,15 @@ paginate_search <- function(masterSearchURL,
       range = 1:(possiblePages - 1)
     } else if(is.numeric(pages) && pages >= 2){
       range = 1:(pages - 1)
-    } else {
-      page <- 0
-      range <- 0
-      return(masterSearchURL)
-      stop("One page search made")
     }
     
-  } else {
-    page <- 0
-    range <- 0
-    return(masterSearchURL)
-    stop("One page search made")
-  }
-  
-  masterSearchURLs[[1]] <- masterSearchURL
-  
-  for(page in range){
-    masterSearchURLs[[page + 1]] <- paginate_search(masterSearchURL,
-                                                    numRecords,
-                                                    firstRecord = (numRecords * page), 
-                                                    pages = NA,
-                                                    recursive = TRUE)
+    for(page in range) {
+      masterSearchURLs[[page + 1]] <- paginate_search(masterSearchURL,
+                                                      numRecords,
+                                                      firstRecord = as.integer(numRecords * page), 
+                                                      pages = NA,
+                                                      recursive = TRUE)
+    }
   }
   
   return(masterSearchURLs)
@@ -76,11 +62,11 @@ paginate_search <- function(masterSearchURL,
 autoTrader_query <- function(make=NA_character_,
                              model=NA_character_,
                              zip=NA_integer_,
-                             startYear=1981,
+                             startYear=NA_integer_,
                              numRecords=25,
-                             firstRecord = 0,
-                             endYear= 2022, # The following year
-                             searchRadius = 0, # 0 indicates Inf radius
+                             firstRecord=0,
+                             endYear=NA_integer_, # The following year
+                             searchRadius=0, # 0 indicates Inf radius
                              sortBy = "relevance",
                              sellerTypes = c('p', 'd'),
                              minPrice,
@@ -90,7 +76,7 @@ autoTrader_query <- function(make=NA_character_,
                              recursive = FALSE)
 {
   possibleMilage <- c(0, seq(15000, 75000, by = 15000), 100000, 150000, 200000, 200001)
-  masterSearchURLs <- list()
+  masterSearchURLs <- list(NULL)
   
   path <- if(is.na(make) && is.na(model)) {
     "/all-cars"

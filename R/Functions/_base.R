@@ -16,9 +16,9 @@ setClass("AutoQuery",
            startYear="integer",
            endYear="integer",
            sellerType = "character",
-           minPrice="numeric",
-           maxPrice="numeric",
-           maxMileage="integer"))
+           minPrice="integer",
+           maxPrice="integer",
+           maxMileage="character"))
 
 setMethod("as.data.frame", "AutoQuery",
           function(x, row.names, optional) data.frame(
@@ -69,10 +69,9 @@ AutoQuery <- function(make = NA_character_,
                       startYear = NA_integer_,
                       endYear = NA_integer_,
                       sellerType = NA_character_,
-                      minPrice = NA_real_,
-                      maxPrice = NA_real_,
-                      maxMileage = NA_integer_) {
-  
+                      minPrice = NA_integer_,
+                      maxPrice = NA_integer_,
+                      maxMileage = NA_character_) {
   fields <- list(
     make=make,
     model=model,
@@ -80,8 +79,8 @@ AutoQuery <- function(make = NA_character_,
     startYear=startYear,
     endYear=endYear,
     sellerType=sellerType, 
-    minPrice=as.double(minPrice), 
-    maxPrice=as.double(maxPrice), 
+    minPrice=minPrice,
+    maxPrice=maxPrice, 
     maxMileage=maxMileage
   )
   

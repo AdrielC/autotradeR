@@ -9,6 +9,7 @@ library(flexdashboard)
 library(shinydashboard)
 library(DT)
 library(crosstalk)
+library(semantic.dashboard)
 source("/Users/adriel/MAIN/Blog/autotradeR/R/Functions/get_listings.R")
 
 ui <- material_page(
@@ -48,47 +49,85 @@ ui <- material_page(
     side_nav_tab_id = "analyzer",
     
     material_row(
+      
       # Inputs
       material_column(width = 3,
                       
-                      material_card("Pull Listings",
+                      material_card("Scrape Data",
                         
                         material_card("Filters",
-                          
-                          sliderInput("milage", "Milage",
-                                      min = 0L, 
-                                      max = 200000L,
-                                      value = c(0L, 60000L)),
-                          
+
+                          material_dropdown("milage", "Milage",
+                                      choices = c(
+                                        "Any" = "0",
+                                        "Under 15,000" = "15000",
+                                        "Under 30,000" = "30000",
+                                        "Under 45,000" = "45000",
+                                        "Under 60,000" = "60000",
+                                        "Under 75,000" = "75000",
+                                        "Under 100,000" = "100000",
+                                        "Under 150,000" = "150000",
+                                        "Under 200,000" = "200000",
+                                        "Over 200,000" = "200001"
+                                      ),
+                                      selected = "75000"),
+
                           sliderInput("price", "Price",
-                                      min = 1000, 
-                                      max = 100000,
-                                      value = c(1, 25000)),
-                          
-                          material_dropdown("sellerType", "Seller Type",
-                                            choices = c(
+                                      min = 0L,
+                                      max = 100000L,
+                                      value = c(0L, 25000L)),
+# 
+                          material_dropdown("seller_type", "Seller Type",
+                                            choices = list(
                                               Private = 'p',
-                                              Dealer = 'd'
-                                            ),
+                                              Dealer = 'd',
+                                              Any = c('p', 'd')
+                                              ),
                                             selected = 'p',
-                                            multiple = TRUE),
-                          
-                          material_number_box("maxResults", "Max Results",
-                            min_value = 1L,
+                                            multiple = FALSE),
+
+                          material_number_box("max_results", "Max Results",
+                            min_value = 25L,
                             max_value = 3000L,
                             initial_value = 1000L
                           )
                         ),
                         
-                        material_button(
-                          input_id = "run",
-                          label = "Run"
-                        ))
+                        material_button("refresh","Refresh", icon = icon("fa fa-refresh"))
+                        )
                       ),
       material_column(width = 8,
                       material_card("Data Viewer",
-                                    dataTableOutput('listingsData'))
-      ))
+                                    material_row(
+                                      dropdownButton(
+                                        selectInput('select_cols', 'Select Columns',
+                                                    choices = ROW_NAMES,
+                                                    selected = c(
+                                                      "name",
+                                                      "price",
+                                                      "mileage",
+                                                      "production.date",
+                                                      "seller.region",
+                                                      "drivewheel",
+                                                      "color",
+                                                      "listing.url",
+                                                      "VIN"
+                                                    ),
+                                                    multiple=TRUE),
+                                        
+                                        circle = TRUE,
+                                        status = "danger",
+                                        icon = icon("fa fa-gear"),
+                                        width = "500px",
+                                        tooltip = tooltipOptions(title = "Click to select columns")
+                                      ) 
+                                    ),
+                                    dataTableOutput('listingsData'),
+                                    downloadButton("downloadData", "Download")
+                      )
+                        
+                      )
+      )
     ),
   # Scheduler -----------------------------------------------------------
   material_side_nav_tab_content(
@@ -102,97 +141,13 @@ ui <- material_page(
                         tags$h2("Dropdown Button"),
                         br(),
                         dropdownButton(
-                          
                           tags$h3("List of Inputs"),
-                          
-                          selectInput(inputId = 'xcol',
-                                      label = 'X Variable',
-                                      choices = names(iris)),
-                          
-                          selectInput(inputId = 'ycol',
-                                      label = 'Y Variable',
-                                      choices = names(iris),
-                                      selected = names(iris)[[2]]),
-                          
-                          sliderInput(inputId = 'clusters',
-                                      label = 'Cluster count',
-                                      value = 3,
-                                      min = 1,
-                                      max = 9),
-                          
                           circle = TRUE, status = "danger",
                           icon = icon("gear"), width = "300px",
-                          
                           tooltip = tooltipOptions(title = "Click to see inputs !")
-                        )))))
-                        
-                      
-                      # material_card(
-                      #   title = "Pull Autotrader Listings",
-                      #   
-                      #   material_card(
-                      #     title = "Filters",
-                      #     sliderInput("milage", label = "Milage",
-                      #                 min = 0, 
-                      #                 max = 200000,
-                      #                 value = c(20000, 60000)),
-                      #     
-                      #     sliderInput("price", label = "Price",
-                      #                 min = 1000, 
-                      #                 max = 100000,
-                      #                 value = c(100, 25000)) 
-                      #   ),
-                      #   shinymaterial::material_modal(
-                      #     modal_id = "runner",
-                      #     button_text = "Run",
-                      #     title = "Report Runner",
-                      #     
-                      #     material_number_box(
-                      #       input_id = "max_results",
-                      #       min_value = 1,
-                      #       max_value = 2000,
-                      #       initial_value = 1000, 
-                      #       label = "Max Results"
-                      #     ),
-                      #     
-                      #     material_button(
-                      #       input_id = "run_report",
-                      #       label = "Run Report"
-                      #     )
-                      #   )
-                      # )
-                      
-                      
-                      
-                      # material_dropdown(
-                      #   input_id = "report",
-                      #   label = "Select a Group to Compare",
-                      #   c(
-                      #     "Jeep" = "jeep",
-                      #     "Porsche" = "porsche"
-                      #   ),
-                      #   selected = c("jeep"),
-                      #   multiple = TRUE,
-                      #   color = "#ef5350"
-                      # ),
-                      
-                      # material_column(width = 5,mainPanel())
-    # ,
-    # 
-    # material_column(width = 10,
-    #                 
-    #                 tags$div(id = 'wholeApp', style = "opacity:0", title = "lmao",
-    #                          
-    #                          material_row(
-    #                            material_column(width = 2)
-    #                          ),
-    #                          
-    #                          material_row(
-    #                            
-    #                            material_column(width = 12,
-    #                                            material_card(title = "lmao", depth = 3)
-    #                            )
-    #                          )
-    #                 )
-    # )
+                          )
+                        )
+                      )
+      )
+    )
 )
