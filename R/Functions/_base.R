@@ -1,6 +1,8 @@
 library(purrr)
 library(glue)
 library(urltools)
+library(tibble)
+library(dplyr)
 
 # https://www.autotrader.com/cars-for-sale/searchresults.xhtml?zip=78741&listingTypes=used&makeCodeList=JEEP&modelCodeList=WRANGLER
 
@@ -20,29 +22,19 @@ setClass("AutoQuery",
            maxPrice="integer",
            maxMileage="character"))
 
+setMethod("as.list", "AutoQuery", function (x, ...) c(attributes(x), list(...)) %>%
+            within(rm(class)) %>%
+            Filter(function(a) !is.na(a) && !is.null(a), .))
+
 setMethod("as.data.frame", "AutoQuery",
-          function(x, row.names, optional) data.frame(
-            row.names = row.names,
-            make = x@make,
-            model = x@model,
-            zip = x@zip,
-            startYear = x@startYear,
-            endYear = x@endYear,
-            sellerType = x@sellerType,
-            minPrice = x@minPrice,
-            maxPrice = x@maxPrice,
-            maxMileage = x@maxMileage))
+          function(x, row.names, optional) as.tibble(as.list(x)))
 
-setMethod("as.list", "AutoQuery",
-          function (x, ...) {
-  df <- as.data.frame(x)
-  l <- list(...)
-  for(name in names(df)) {
-    l[[name]] <- df[[name]]
-  }
-  l
-})
-
+setMethod("show", "AutoQuery",
+          function(object) {
+            cat(is(object)[[1]], "\n")
+            l <- as.list(object)
+            for (name in names(l)) cat(paste0("  ", name, ": ", l[name], "\n"))
+            })
 
 # Validator to ensure that each slot is of length one
 setValidity("AutoQuery", function(object) {
@@ -71,7 +63,8 @@ AutoQuery <- function(make = NA_character_,
                       sellerType = NA_character_,
                       minPrice = NA_integer_,
                       maxPrice = NA_integer_,
-                      maxMileage = NA_character_) {
+                      maxMileage = NA_character_,
+                      ...) {
   fields <- list(
     make=make,
     model=model,
@@ -84,18 +77,25 @@ AutoQuery <- function(make = NA_character_,
     maxMileage=maxMileage
   )
   
-  lens <- map(fields, length)
+  added_fields <- list(...)
+  
+  lens <- map(c(fields, added_fields), length)
   max_len <- max(unlist(lens))
   
-  for (name in names(fields)) {
-    value <- fields[[name]]
-    val_len <- length(value)
-    if(val_len == 1 && max_len != val_len) {
-      fields[[name]] <- rep(value, max_len)
-    }
+  expand <- function(l) {
+    for (name in names(l)) {
+      value <- l[[name]]
+      val_len <- length(value)
+      if(val_len == 1 && max_len != val_len) {
+        l[[name]] <- rep(value, max_len)
+      }
+    } 
   }
   
-  new("AutoQuery",
+  expand(fields)
+  expand(added_fields)
+  
+  aq <- new("AutoQuery",
       make = fields$make,
       model = fields$model,
       zip = fields$zip,
@@ -106,8 +106,11 @@ AutoQuery <- function(make = NA_character_,
       maxPrice = fields$maxPrice,
       maxMileage = fields$maxMileage
   )
+  
+  map(names(added_fields), function(field) attr(aq, field) <<- added_fields[[field]])
+  
+  aq
 }
-
 
 
 ## Base class for sources of auto data e.g. Autotrader, Edmunds, etc.

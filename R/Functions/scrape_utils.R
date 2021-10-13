@@ -49,27 +49,27 @@ listings_df <- function(masterSearchURL)
   listings_html <- masterSearchURL %>% 
     xml2::read_html()
   
-  noResult <- html_node %>%
-    html_node(".text-normal") %>%
-    html_text()
+  # noResult <- html_node %>%
+  #   html_node(".text-normal") %>%
+  #   html_text()
+  # 
+  # if(!is.na(noResult)){ # noResult will be NA if there are results for the search
+  #   if(noResult == "No results found."){
+  #     stop("No results found. Please change your search parameters") 
+  #   } else {
+  #     message("Trying listings_df() again")
+  #     return(listings_df(masterSearchURL))
+  #   }
+  # }
   
-  if(!is.na(noResult)){ # noResult will be NA if there are results for the search
-    if(noResult == "No results found."){
-      stop("No results found. Please change your search parameters") 
-    } else {
-      message("Trying listings_df() again")
-      return(listings_df(masterSearchURL))
-    }
-  }
-  
-  if(!is.na(noResult)){
-    message("Trying listings_df() again")
-    return(listings_df(masterSearchURL))
-  }
+  # if(!is.na(noResult)){
+  #   message("Trying listings_df() again")
+  #   return(listings_df(masterSearchURL))
+  # }
   
   listings_nodeset <- listings_html %>% 
-    rvest::html_nodes(".col-sm-9 .text-md") %>%
-    rvest::html_attrs() 
+    rvest::html_nodes(".inventory-listing-body") %>%
+    rvest::html_attrs()
   
   print(listings_nodeset)
   

@@ -9,6 +9,36 @@ source("/Users/adriel/MAIN/Blog/autotradeR/R/Functions/scrape_utils.R")
 source("/Users/adriel/MAIN/Blog/autotradeR/R/Functions/autoTrader_query.R")
 source("/Users/adriel/MAIN/Blog/autotradeR/R/Functions/_base.R")
 
+format_data <- function(df) df %>%
+  mutate(is.private=str_detect(offers.seller.name, "(?!=Private)( (Owner|Seller).*)"),
+         mileage = readr::parse_number(mileageFromOdometer.value),
+         is.used=factor(str_detect(offers.itemCondition, "Used"))) %>%
+  rename(VIN=vehicleIdentificationNumber,
+         price=offers.price,
+         price.valid.until=offers.priceValidUntil,
+         seller.region=offers.seller.address.addressRegion,
+         seller.zip=offers.seller.address.postalCode,
+         seller.address=offers.seller.address.streetAddress,
+         condition=offers.itemCondition,
+         seller.telephone=offers.seller.telephone,
+         seller.name=offers.seller.name,
+         seller.type=offers.seller..type,
+         availability=offers.availability,
+         offers.type=offers..type,
+         brand=brand.name,
+         manufacturer=manufacturer.name,
+         year=productionDate,
+         drivewheel=driveWheelConfiguration,
+         engine=vehicleEngine,
+         transmission=vehicleTransmission,
+         listing.url=url,
+         color.interior=vehicleInteriorColor,
+         fuel.efficiency=fuelEfficiency,
+         fuel.type=fuelType,
+         body.type=bodyType,
+         SKU=sku)
+
+
 
 ## Define function that will generate result urls from queries
 setGeneric("listResultPages",
@@ -59,14 +89,14 @@ read_listings.default <- function(x, ...) x %>%
            jsonlite::fromJSON() %>%
            as.data.frame) %>%
   reduce(bind_rows, .init = data.frame()) %>%
-  as.tibble()
+  as.tibble
 
 ## Extract listing info from all results in all pages
 read_listings.list <- function(x, fork=NULL) {
   if(is.null(fork)) {
-    out <- lapply(x, read_listings)
+    out <- purrr::map(x, read_listings)
   } else {
-    message(paste0("Using ", fork, " core(s) to scrape links"))
+    message(paste0("Creating cluster with ", fork, " core(s)"))
     cl <- makeForkCluster(fork)
     out <- pblapply(x, read_listings, cl=cl) 
     stopCluster(cl)
@@ -77,67 +107,45 @@ read_listings.list <- function(x, fork=NULL) {
   out %>% reduce(bind_rows, .init = data.frame())
 }
 
+
 RESULTS_PER_PAGE <- 25L
 
 get_pages <- function(max_results) as.integer(max_results / RESULTS_PER_PAGE) + ((max_results %% RESULTS_PER_PAGE) > 0)
 
-get_filtered_listings <- function(max_results=1000L,
-                                  fork=NULL,
-                                  ...) listResultPages(AutoTrader(),
+
+get_filtered_listings <- function(max_results=1000L, fork=NULL, ...) listResultPages(AutoTrader(),
                                                        AutoQuery(...),
                                                        pages=get_pages(max_results),
                                                        numRecords=RESULTS_PER_PAGE) %>%
   read_listings(fork=fork) %>%
-    distinct(vehicleIdentificationNumber, .keep_all=TRUE) %>%
-    mutate(is_private=str_detect(offers.seller.name, "(?!=Private)( (Owner|Seller).*)"),
-           mileageFromOdometer.value = readr::parse_number(mileageFromOdometer.value),
-           is_used=factor(str_detect(offers.itemCondition, "Used"))) %>%
-    rename(VIN=vehicleIdentificationNumber,
-           price=offers.price,
-           price.valid.until=offers.priceValidUntil,
-           seller.region=offers.seller.address.addressRegion,
-           seller.zip=offers.seller.address.postalCode,
-           brand=brand.name,
-           manufacturer=manufacturer.name,
-           production.date=productionDate,
-           drivewheel=driveWheelConfiguration,
-           engine=vehicleEngine,
-           transmission=vehicleTransmission,
-           mileage=mileageFromOdometer.value,
-           listing.url=url,
-           color.interior=vehicleInteriorColor,
-           fuel.efficiency=fuelEfficiency,
-           fuel.type=fuelType,
-           body.type=bodyType,
-           SKU=sku)
-
+  format_data %>%
+  distinct(VIN, .keep_all=TRUE)
 test_scrape <- function(fork=NULL) {
   
   ## Generate urls for paginated search results
   query_urls <- listResultPages(AutoTrader(),
                                 AutoQuery(
                                   make = "Jeep",
-                                  model = "Wrangler",
-                                  minPrice = 25000,
-                                  maxMileage = 60000L,
-                                  sellerType = c('p')),
+                                  minPrice = 25000L,
+                                  maxMileage = "60000",
+                                  sellerType = c('p', 'd')),
                                 pages=100,
                                 numRecords=25)
   
   ## Extract info from each result on each page and collect into a single dataframe
-  test_autotrader_listings <- read_listings(query_urls, fork=fork)
+  test_autotrader_listings <- read_listings(query_urls, fork=fork) %>% format_data
   
   show(count(test_autotrader_listings))
   
   ## Analyze results
   test_autotrader_listings_filtered <- test_autotrader_listings %>%
-    distinct(vehicleIdentificationNumber, .keep_all=TRUE) %>%
-    group_by(manufacturer.name) %>%
+    distinct(VIN, .keep_all=TRUE) %>%
+    group_by(manufacturer) %>%
     mutate(model_count = n()) %>%
-    filter(model_count > 5) %>%
+    top_n(5, model_count) %>%
     ungroup() %>% 
-    mutate(is_private=str_detect(offers.seller.name, "(?!=Private)( (Owner|Seller).*)"),
-           mileageFromOdometer.value = readr::parse_number(mileageFromOdometer.value))
+    mutate(is_private=str_detect(seller.name, "(?!=Private)( (Owner|Seller).*)"),
+           mileage = readr::parse_number(mileage))
   
   count(test_autotrader_listings_filtered)
   
@@ -147,34 +155,21 @@ test_scrape <- function(fork=NULL) {
   
   ## Plot data
   test_autotrader_listings_filtered %>%
-    mutate(mileageFromOdometer.value = readr::parse_number(mileageFromOdometer.value)) %>%
-    ggplot(aes(y=log1p(offers.price),
-               x=mileageFromOdometer.value, 
-               color=is_private)) +
+    mutate(mileage = readr::parse_number(mileage)) %>%
+    ggplot(aes(y=log1p(price),
+               x=mileage, 
+               color=is.private)) +
     geom_point() + 
     geom_smooth(method = "lm", alpha=0.2) +
-    facet_wrap(.~manufacturer.name)
+    facet_wrap(.~manufacturer)
 }
 
-ROW_NAMES <<- c(
-  "SKU",
-  "listing.url",
-  "name",
-  "price",
-  "price.valid.until",
-  "brand",
-  "model",
-  "mileage",
-  "manufacturer",
-  "body.type",
-  "is_used",
-  "seller.region",
-  "production.date",
-  "drivewheel",
-  "engine",
-  "transmission",
-  "color",
-  "color.interior",
-  "fuel.efficiency",
-  "fuel.type"
-)
+
+get_makes <- function(x) UseMethod("get_makes")
+
+get_makes.AutoTrader <- function(auto_source) read_html(url_compose(auto_source)) %>%
+  xml2::xml_find_all("//optgroup[contains(@label, 'All Makes')]") %>%
+  xml_children() %>%
+  rvest::html_attrs() %>%
+  reduce(function(df, x) bind_rows(df, tibble(label=x['label'], value=x['value'])), 
+         .init = tibble())
